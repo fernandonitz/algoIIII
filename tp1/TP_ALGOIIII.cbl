@@ -110,6 +110,8 @@ PROCEDURE DIVISION.
 	OPEN OUTPUT MASTER.
 
 2_LEO_ARCHIVOS.
+	READ SUC1 AT END MOVE "SI" TO suc1-estado.
+
 *> primera lectura de los archivos suc1, suc2, suc3 y times y guardado en un registo particular de cada uno ej: reg_suc1 = Leo(suc1)
 
 3_ARMO_V_SUCURSALES.
@@ -187,7 +189,7 @@ PROCEDURE DIVISION.
 *> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
 
 5223_ESCRIBO_MOV.
-	DISPLAY 'SI'.
+	DISPLAY reg_suc1.
 *> se debe escribir el movimiento individual como lo dice el enunciado
 
 5224_LEO_ARCH_MIN.
