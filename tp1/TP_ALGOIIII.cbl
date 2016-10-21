@@ -14,36 +14,64 @@ FILE-CONTROL.
 	SELECT TIM ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS times-estado.
 	SELECT SUCURSALES ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS sucursales-estado.
 	SELECT  TIPOSCLASE ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS tipos_clase-estado.
-    SELECT MASTER ASSIGN TO maestro STATUS IS mae-estado.
+    SELECT MASTER ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS mae-estado.
 DATA DIVISION.
 FILE SECTION.
 
 FD SUC1 LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/Escritorio/suc1.txt".
-01 reg_suc1 PIC X(1).
-
+		VALUE OF FILE-ID IS "/home/franguerini/Desktop/tp/algoiiii/tp1/archivos/suc1.txt".
+01 reg_suc1.
+	  03 suc_1_num PIC X(5).
+	  03 suc_1_fecha PIC 9(8).
+	  03 suc_1_suc PIC X(3).
+	  03 suc_1_clase PIC X(4).
+	  03 suc_1_horas PIC 9(2)V99.
+	  
 FD SUC2 LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/Escritorio/suc2.txt".
-01 reg_suc2 PIC X(1).
-
-FD SUC3 LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/Escritorio/suc3.txt".
-01 reg_suc3 PIC X(1).
-
+		VALUE OF FILE-ID IS "/home/franguerini/Desktop/tp/algoiiii/tp1/archivos/suc2.txt".
+01 reg_suc2.
+	  03 suc_2_num PIC X(5).
+	  03 suc_2_fecha PIC 9(8).
+	  03 suc_2_suc PIC X(3).
+	  03 suc_2_clase PIC X(4).
+	  03 suc_2_horas PIC 9(2)V99.
+	  
+FD SUC2 LABEL RECORD IS STANDARD 
+		VALUE OF FILE-ID IS "/home/franguerini/Desktop/tp/algoiiii/tp1/archivos/suc3.txt".
+01 reg_suc3.
+	  03 suc_3_num PIC X(5).
+	  03 suc_3_fecha PIC 9(8).
+	  03 suc_3_suc PIC X(3).
+	  03 suc_3_clase PIC X(4).
+	  03 suc_3_horas PIC 9(2)V99.
+	  
 FD TIM LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/Escritorio/times.txt".
-01 reg_times PIC X(1).
+		VALUE OF FILE-ID IS "/home/franguerini/Desktop/tp/algoiiii/tp1/archivos/times.txt".
+01 reg_time.
+	  03 tim_num PIC X(5).
+	  03 tim_fecha PIC 9(8).
+	  03 tim_suc PIC X(3).
+	  03 tim_clase PIC X(4).
+	  03 tim_horas PIC 9(2).
 
 FD SUCURSALES LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/Escritorio/sucursales.txt".
-01 reg_sucursal PIC X(1).
+		VALUE OF FILE-ID IS "/home/franguerini/Desktop/tp/algoiiii/tp1/archivos/sucursales.txt".
+01 reg_sucursal.
+	  03 suc_suc PIC X(3).
+	  03 suc_razon PIC 9(25).
+	  03 suc_dire PIC X(20).
+	  03 suc_tel PIC X(20).
+	  03 suc_cuit PIC 9(11).
 
 FD TIPOSCLASE LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/Escritorio/tiposClase.txt".
-01 reg_tipo_clase PIC X(1).
-
+		VALUE OF FILE-ID IS "/home/franguerini/Desktop/tp/algoiiii/tp1/archivos/tiposclase.txt".
+01 reg_tipclase.
+	  03 tip_clase_suc PIC X(4).
+	  03 tip_clase_razon PIC X(20).
+	  03 tip_clase_dire PIC 9(5)V99.
+	  
 FD MASTER LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/Escritorio/mae.txt".
+		VALUE OF FILE-ID IS "/home/franguerini/Desktop/tp/algoiiii/tp1/archivos/mae.txt".
 01 reg_mae PIC X(1).
 
 WORKING-STORAGE SECTION.
@@ -91,7 +119,7 @@ PROCEDURE DIVISION.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_ARMO_V_SUCURSALES.
 	PERFORM 4_ARMO_V_TIPOS_CLASE.
-	PERFORM 5_CICLO_ARCHIVOS UNTIL I > 2.
+	PERFORM 5_CICLO_ARCHIVOS UNTIL suc1_estado_eof.
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
@@ -123,7 +151,7 @@ PROCEDURE DIVISION.
 5_CICLO_ARCHIVOS.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.
-	PERFORM 52_CICLO_PROFESORES UNTIL I > 2.
+	PERFORM 52_CICLO_PROFESORES UNTIL suc1_estado_eof.
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
@@ -148,7 +176,7 @@ PROCEDURE DIVISION.
 52_CICLO_PROFESORES.
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
-	PERFORM 522_CICLO_FECHA UNTIL I > 2.
+	PERFORM 522_CICLO_FECHA UNTIL suc1_estado_eof.
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
 	PERFORM 523_ESCRIBO_TOT_FECHA.
 
@@ -189,7 +217,11 @@ PROCEDURE DIVISION.
 *> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
 
 5223_ESCRIBO_MOV.
-	DISPLAY reg_suc1.
+	DISPLAY suc_1_num.
+	DISPLAY suc_1_fecha.
+	DISPLAY suc_1_suc.
+	DISPLAY suc_1_clase.
+	DISPLAY suc_1_horas.
 *> se debe escribir el movimiento individual como lo dice el enunciado
 
 5224_LEO_ARCH_MIN.
