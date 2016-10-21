@@ -1,0 +1,7 @@
+*> ruta fer = /home/fernando/workspaces/workspace/algo4/algoIIII/tp1/TP_ALGOIIII.cbl
+*> ruta fran = /home/fernando/workspaces/workspace/algo4/algoIIII/tp1/TP_ALGOIIII.cbl
+
+*> ruta fer =  /home/fernando/workspaces/workspace/algo4/algoIIII/
+*> ruta fran = /home/franguerini/Desktop/tp/algoiiii/
+
+perl -pi -e "s[/home/franguerini/Desktop/tp/algoiiii/] [/home/fernando/workspaces/workspace/algo4/algoIIII/]" /home/fernando/workspaces/workspace/algo4/algoIIII/tp1/TP_ALGOIIII.cbl
