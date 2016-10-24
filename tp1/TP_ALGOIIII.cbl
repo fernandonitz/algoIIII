@@ -36,7 +36,7 @@ FD SUC2 LABEL RECORD IS STANDARD
 	  03 suc_2_clase 					PIC X(4).
 	  03 suc_2_horas 					PIC 9(2)V99.
 	  
-FD SUC2 LABEL RECORD IS STANDARD 
+FD SUC3 LABEL RECORD IS STANDARD 
 		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/suc3.txt".
 01 reg_suc3.
 	  03 suc_3_num 						PIC X(5).
@@ -72,38 +72,32 @@ FD TIPOSCLASE LABEL RECORD IS STANDARD
 	  
 FD MASTER LABEL RECORD IS STANDARD 
 		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/mae.txt".
-01 reg_mae 								PIC X(5).
-*>01 reg_mae.
-*>	  03 mae_num PIC X(5).
-*>	  03 mae_fecha PIC X(8).
-*>	  03 mae_suc PIC X(3).
-*>	  03 mae_clase PIC X(4).
-*>	  03 mae_horas PIC X(4).
+01 reg_mae 								PIC X(24).
 
 WORKING-STORAGE SECTION.
 
-	77 	suc1_estado 					PIC XX. 
-		88 suc1_estado_ok 				VALUE "NO".
-		88 suc1_estado_eof 				VALUE "SI".
-	77 	suc2_estado 					PIC XX. 
-		88 suc2_estado_ok 				VALUE "NO".
-		88 suc2_estado_eof 				VALUE "SI".
-	77 	suc3_estado 					PIC XX. 
-		88 suc3_estado_ok 				VALUE "NO".
-		88 suc3_estado_eof 				VALUE "SI".
-	77 	times_estado 					PIC XX. 
-		88 times_estado_ok 				VALUE "NO".
-		88 times_estado_eof				VALUE "SI".
-	77 	sucursales_estado 				PIC XX. 
-		88 sucursales_estado_ok 		VALUE "NO".
-		88 sucursales_estado_eof 		VALUE "SI".
-	77 	tipos_clase 					PIC XX. 
-		88 tipos_clase_estado_ok 		VALUE "NO".
-		88 tipos_clase_estado_eof 		VALUE "SI".
-	77 	mae_estado 						PIC XX.
-		88 mae_estado_ok 				VALUE "NO". 
-		88 mae_estado_eof 				VALUE "SI".
-	77 WB-FIN-ENTRADA 					PIC X(1) VALUE "N".
+	77 	suc1-estado 					PIC XX. 
+		88 suc1-estado_ok 				VALUE "NO".
+		88 suc1-estado_eof 				VALUE "SI".
+	77 	suc2-estado						PIC XX. 
+		88 suc2-estado_ok 				VALUE "NO".
+		88 suc2-estado_eof 				VALUE "SI".
+	77 	suc3-estado 					PIC XX. 
+		88 suc3-estado_ok 				VALUE "NO".
+		88 suc3-estado_eof 				VALUE "SI".
+	77 	times-estado 					PIC XX. 
+		88 times-estado_ok 				VALUE "NO".
+		88 times-estado_eof				VALUE "SI".
+	77 	sucursales-estado 				PIC XX. 
+		88 sucursales-estado_ok 		VALUE "NO".
+		88 sucursales-estado_eof 		VALUE "SI".
+	77 	tipos_clase-estado 				PIC XX. 
+		88 tipos_clase-estado_ok 		VALUE "NO".
+		88 tipos_clase-estado_eof 		VALUE "SI".
+	77 	mae-estado 						PIC XX.
+		88 mae-estado_ok 				VALUE "NO". 
+		88 mae-estado_eof 				VALUE "SI".
+	77  WB-FIN-ENTRADA 					PIC X(1) VALUE "N".
     	88 FIN-ENTRADA 					VALUE "S".
 
    	*> TOTALES PARCIALES:
@@ -114,15 +108,6 @@ WORKING-STORAGE SECTION.
 	*> ITERADOR
 	01 I 								PIC 9(1) VALUE 0.
 	
-	*> FIN DE ARCHIVOS:
-	01 suc1-estado 						PIC XX.
-	01 suc2-estado 						PIC XX.
-	01 suc3-estado 						PIC XX.
-	01 times-estado 					PIC XX.
-	01 sucursales-estado 				PIC XX.
-	01 tipos_clase-estado 				PIC XX.
-	01 mae-estado						PIC XX.
-
 	*> REGISTROS MINIMOS:
 	01 prof_min							PIC X(5).
 
@@ -134,7 +119,7 @@ PROCEDURE DIVISION.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_ARMO_V_SUCURSALES.
 	PERFORM 4_ARMO_V_TIPOS_CLASE.
-	PERFORM 5_CICLO_ARCHIVOS UNTIL suc1_estado_eof.
+	PERFORM 5_CICLO_ARCHIVOS UNTIL (suc1-estado_eof or suc2-estado_eof).
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
 	STOP RUN.   
@@ -152,9 +137,13 @@ PROCEDURE DIVISION.
 	OPEN OUTPUT MASTER.
 
 2_LEO_ARCHIVOS.
-	READ SUC1 AT END MOVE "SI" TO suc1-estado.
-	READ SUC2 AT END MOVE "SI" TO suc2-estado.
-	READ SUC3 AT END MOVE "SI" TO suc3-estado.
+	if suc1-estado_ok
+	READ suc1 AT END MOVE "SI" TO suc1-estado.
+	endif.
+	if suc2-estado_ok
+	READ suc2 AT END MOVE "SI" TO suc2-estado.
+	endif.
+	READ suc3 AT END MOVE "SI" TO suc3-estado.
 	READ TIM  AT END MOVE "SI" TO times-estado.
 
 3_ARMO_V_SUCURSALES.
@@ -167,7 +156,7 @@ PROCEDURE DIVISION.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.
 	
-	PERFORM 52_CICLO_PROFESORES UNTIL suc1_estado_eof.
+	PERFORM 52_CICLO_PROFESORES UNTIL (suc1-estado_eof or suc2-estado_eof).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act
 	
 	PERFORM 53_ESCRIBO_TOT_PROF.
@@ -195,7 +184,7 @@ PROCEDURE DIVISION.
 52_CICLO_PROFESORES.
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
-	PERFORM 522_CICLO_FECHA UNTIL suc1_estado_eof.
+	PERFORM 522_CICLO_FECHA UNTIL (suc1-estado_eof or suc2-estado_eof).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
 	PERFORM 523_ESCRIBO_TOT_FECHA.
 
@@ -236,21 +225,20 @@ PROCEDURE DIVISION.
 *> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
 
 5223_ESCRIBO_MOV.
-	DISPLAY suc_1_num.
-	DISPLAY suc_1_fecha.
-	DISPLAY suc_1_suc.
-	DISPLAY suc_1_clase.
-	DISPLAY suc_1_horas.
-*>	MOVE CORRESPONDING reg_suc1 TO reg_mae.
-	MOVE "HOLAS" TO reg_mae.
+	DISPLAY suc_2_num.
+	DISPLAY suc_2_fecha.
+	DISPLAY suc_2_suc.
+	DISPLAY suc_2_clase.
+	DISPLAY suc_2_horas. 
+	MOVE reg_suc1 TO reg_mae.
 	WRITE reg_mae.
 
 *> se debe escribir el movimiento individual como lo dice el enunciado
 
 5224_LEO_ARCH_MIN.
-	READ suc1 AT END MOVE "SI" TO suc1_estado.
-	READ SUC2 AT END MOVE "SI" TO suc2-estado.
-	READ SUC3 AT END MOVE "SI" TO suc3-estado.
-	READ TIM  AT END MOVE "SI" TO times-estado.
+	READ suc1 AT END MOVE "SI" TO suc1-estado.
+	READ suc2 AT END MOVE "SI" TO suc2-estado.
+	READ suc3 AT END MOVE "SI" TO suc3-estado.
+	READ tim  AT END MOVE "SI" TO times-estado.
 
 *>  ya teniendo el archivo min, se debe dejar el resultado en el nuevo registro.
