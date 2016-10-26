@@ -76,11 +76,9 @@ FD MASTER LABEL RECORD IS STANDARD
 
 WORKING-STORAGE SECTION.
 
-	77 	suc1-estado 					PIC XX. 
-		88 suc1-estado_ok 				VALUE "NO".
+	77 	suc1-estado 					PIC XX VALUE "NO". 
 		88 suc1-estado_eof 				VALUE "SI".
-	77 	suc2-estado						PIC XX. 
-		88 suc2-estado_ok 				VALUE "NO".
+	77 	suc2-estado						PIC XX VALUE "NO". 
 		88 suc2-estado_eof 				VALUE "SI".
 	77 	suc3-estado 					PIC XX. 
 		88 suc3-estado_ok 				VALUE "NO".
@@ -119,7 +117,7 @@ PROCEDURE DIVISION.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_ARMO_V_SUCURSALES.
 	PERFORM 4_ARMO_V_TIPOS_CLASE.
-	PERFORM 5_CICLO_ARCHIVOS UNTIL (suc1-estado_eof or suc2-estado_eof).
+	PERFORM 5_CICLO_ARCHIVOS UNTIL (suc1-estado_eof and suc2-estado_eof).
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
 	STOP RUN.   
@@ -137,12 +135,8 @@ PROCEDURE DIVISION.
 	OPEN OUTPUT MASTER.
 
 2_LEO_ARCHIVOS.
-	if suc1-estado_ok
 	READ suc1 AT END MOVE "SI" TO suc1-estado.
-	endif.
-	if suc2-estado_ok
 	READ suc2 AT END MOVE "SI" TO suc2-estado.
-	endif.
 	READ suc3 AT END MOVE "SI" TO suc3-estado.
 	READ TIM  AT END MOVE "SI" TO times-estado.
 
@@ -156,7 +150,7 @@ PROCEDURE DIVISION.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.
 	
-	PERFORM 52_CICLO_PROFESORES UNTIL (suc1-estado_eof or suc2-estado_eof).
+	PERFORM 52_CICLO_PROFESORES UNTIL (suc1-estado_eof and suc2-estado_eof).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act
 	
 	PERFORM 53_ESCRIBO_TOT_PROF.
@@ -184,7 +178,7 @@ PROCEDURE DIVISION.
 52_CICLO_PROFESORES.
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
-	PERFORM 522_CICLO_FECHA UNTIL (suc1-estado_eof or suc2-estado_eof).
+	PERFORM 522_CICLO_FECHA UNTIL (suc1-estado_eof and suc2-estado_eof).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
 	PERFORM 523_ESCRIBO_TOT_FECHA.
 
@@ -238,7 +232,7 @@ PROCEDURE DIVISION.
 5224_LEO_ARCH_MIN.
 	READ suc1 AT END MOVE "SI" TO suc1-estado.
 	READ suc2 AT END MOVE "SI" TO suc2-estado.
-	READ suc3 AT END MOVE "SI" TO suc3-estado.
-	READ tim  AT END MOVE "SI" TO times-estado.
+*>	READ suc3 AT END MOVE "SI" TO suc3-estado.
+*>	READ tim  AT END MOVE "SI" TO times-estado.
 
 *>  ya teniendo el archivo min, se debe dejar el resultado en el nuevo registro.
