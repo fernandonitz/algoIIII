@@ -103,6 +103,13 @@ WORKING-STORAGE SECTION.
 	01 TOT_X_PROF 						PIC 9(6) VALUE 0.
 	01 TOT_X_FECHA 						PIC 9(6) VALUE 0.
 	
+	01 fin_suc1 						PIC XX   VALUE "NO".
+	01 fin_suc2 						PIC XX   VALUE "NO".
+	01 fin_suc3 						PIC XX   VALUE "NO".
+	01 fin_times 						PIC XX   VALUE "NO".
+	01 fin_sucur 						PIC XX   VALUE "NO".
+	01 fin_tipCla 						PIC XX   VALUE "NO".
+
 	*> ITERADOR
 	01 I 								PIC 9(1) VALUE 0.
 	
@@ -117,7 +124,7 @@ PROCEDURE DIVISION.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_ARMO_V_SUCURSALES.
 	PERFORM 4_ARMO_V_TIPOS_CLASE.
-	PERFORM 5_CICLO_ARCHIVOS UNTIL (suc1-estado_eof and suc2-estado_eof).
+	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
 	STOP RUN.   
@@ -135,10 +142,10 @@ PROCEDURE DIVISION.
 	OPEN OUTPUT MASTER.
 
 2_LEO_ARCHIVOS.
-	READ suc1 AT END MOVE "SI" TO suc1-estado.
-	READ suc2 AT END MOVE "SI" TO suc2-estado.
-	READ suc3 AT END MOVE "SI" TO suc3-estado.
-	READ TIM  AT END MOVE "SI" TO times-estado.
+	READ suc1 AT END MOVE "SI" TO fin_suc1.
+	READ suc2 AT END MOVE "SI" TO fin_suc2.
+	READ suc3 AT END MOVE "SI" TO fin_suc3.
+	READ TIM  AT END MOVE "SI" TO fin_times.
 
 3_ARMO_V_SUCURSALES.
 *> se trae a memoria el archivo de sucursales con su respectivo formato y de ser necesario su indice
@@ -150,7 +157,7 @@ PROCEDURE DIVISION.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.
 	
-	PERFORM 52_CICLO_PROFESORES UNTIL (suc1-estado_eof and suc2-estado_eof).
+	PERFORM 52_CICLO_PROFESORES UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act
 	
 	PERFORM 53_ESCRIBO_TOT_PROF.
@@ -178,7 +185,7 @@ PROCEDURE DIVISION.
 52_CICLO_PROFESORES.
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
-	PERFORM 522_CICLO_FECHA UNTIL (suc1-estado_eof and suc2-estado_eof).
+	PERFORM 522_CICLO_FECHA UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
 	PERFORM 523_ESCRIBO_TOT_FECHA.
 
@@ -219,20 +226,32 @@ PROCEDURE DIVISION.
 *> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
 
 5223_ESCRIBO_MOV.
-	DISPLAY suc_2_num.
-	DISPLAY suc_2_fecha.
-	DISPLAY suc_2_suc.
-	DISPLAY suc_2_clase.
-	DISPLAY suc_2_horas. 
-	MOVE reg_suc1 TO reg_mae.
-	WRITE reg_mae.
-
+    IF (fin_suc1 IS = "NO")THEN
+	    MOVE reg_suc1 to reg_mae
+		WRITE reg_mae
+    END-IF.
+	
+    IF (fin_suc2 IS = "NO")THEN
+	    MOVE reg_suc2 to reg_mae
+		WRITE reg_mae
+    END-IF.
+	
+    IF (fin_suc3 IS = "NO")THEN
+	    MOVE reg_suc3 to reg_mae
+		WRITE reg_mae
+    END-IF.
+	
+    IF (fin_times IS = "NO")THEN
+	    MOVE reg_time to reg_mae
+		WRITE reg_mae
+    END-IF.
+	
 *> se debe escribir el movimiento individual como lo dice el enunciado
 
 5224_LEO_ARCH_MIN.
-	READ suc1 AT END MOVE "SI" TO suc1-estado.
-	READ suc2 AT END MOVE "SI" TO suc2-estado.
-*>	READ suc3 AT END MOVE "SI" TO suc3-estado.
-*>	READ tim  AT END MOVE "SI" TO times-estado.
+	READ suc1 AT END MOVE "SI" TO fin_suc1.
+	READ suc2 AT END MOVE "SI" TO fin_suc2.
+	READ suc3 AT END MOVE "SI" TO fin_suc3.
+	READ tim  AT END MOVE "SI" TO fin_times.
 
 *>  ya teniendo el archivo min, se debe dejar el resultado en el nuevo registro.
