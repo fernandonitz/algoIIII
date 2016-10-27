@@ -100,6 +100,8 @@ WORKING-STORAGE SECTION.
 	01 TOT_GRAL 						PIC 9(6) VALUE 0.
 	01 TOT_X_PROF 						PIC 9(6) VALUE 0.
 	01 TOT_X_FECHA 						PIC 9(6) VALUE 0.
+	01 TOT_X_SUC 						PIC 9(6) VALUE 0.
+	01 TOT_IMPR							PIC X(6).
 	
 	01 fin_suc1 						PIC XX   VALUE "NO".
 	01 fin_suc2 						PIC XX   VALUE "NO".
@@ -129,6 +131,9 @@ PROCEDURE DIVISION.
 	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
+	DISPLAY "TOT GRAL".
+	MOVE TOT_GRAL TO TOT_IMPR.
+	DISPLAY TOT_IMPR.
 	STOP RUN.   
 
 
@@ -205,8 +210,13 @@ PROCEDURE DIVISION.
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
 	MOVE prof_min TO prof_ant_min.
+	*> corte control...	
     MOVE "CORTE POR PROFESOR      " to reg_mae.
+    DISPLAY "CORTE POR PROFESOR".
+	MOVE TOT_X_PROF TO TOT_IMPR.
+	DISPLAY TOT_IMPR.
 	WRITE reg_mae.
+	*>...
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
@@ -258,6 +268,9 @@ PROCEDURE DIVISION.
 	IF (fecha_ant_min IS NOT = fecha_min ) THEN 	
 		MOVE "CORTE POR FECHA         " to reg_mae
 		WRITE reg_mae
+		DISPLAY "CORTE POR FECHA"
+		MOVE TOT_X_FECHA TO TOT_IMPR
+		DISPLAY TOT_IMPR
 	END-IF.
 
 	MOVE fecha_min TO fecha_ant_min.
@@ -267,8 +280,6 @@ PROCEDURE DIVISION.
 
 54_IMPRIMO_TOT_PROF.
 *> se debe imprimir por pantalla (como dice el enunciado el total por prof, hasheando si fuese el caso al vector de sucursales y al vector de tipos_clase)
-
-
 
 *> CICLO POR FECHA--------------------------------------------------------------
 
@@ -345,6 +356,34 @@ PROCEDURE DIVISION.
 
 5221_SUMAR_TOTALES.
 *> se debe sumar en todos los totales: 	01 TOT_GRAL, TOT_POR_PROF y TOT_POR_FECHA el movimiento individual.
+    IF (archALeer IS = 1 and fin_suc1 IS NOT = "SI")THEN
+		ADD suc1_horas TO TOT_GRAL
+		ADD suc1_horas TO TOT_X_PROF
+		ADD suc1_horas TO TOT_X_FECHA
+		ADD suc1_horas TO TOT_X_SUC
+    END-IF.
+	
+    IF (archALeer IS = 2 and fin_suc2 IS NOT = "SI")THEN
+		ADD suc2_horas TO TOT_GRAL
+		ADD suc2_horas TO TOT_X_PROF
+		ADD suc2_horas TO TOT_X_FECHA
+		ADD suc2_horas TO TOT_X_SUC
+    END-IF.
+	
+    IF (archALeer IS = 3 and fin_suc3 IS NOT = "SI")THEN
+		ADD suc3_horas TO TOT_GRAL
+		ADD suc3_horas TO TOT_X_PROF
+		ADD suc3_horas TO TOT_X_FECHA
+		ADD suc3_horas TO TOT_X_SUC
+    END-IF.
+	
+    IF (archALeer IS = 4 and fin_times IS NOT = "SI")THEN
+		ADD tim_horas TO TOT_GRAL
+		ADD tim_horas TO TOT_X_PROF
+		ADD tim_horas TO TOT_X_FECHA
+		ADD tim_horas TO TOT_X_SUC
+    END-IF.
+
 
 5222_SUMAR_EN_MATRIZ.
 *> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
