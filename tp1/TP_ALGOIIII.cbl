@@ -80,11 +80,9 @@ WORKING-STORAGE SECTION.
 		88 suc1-estado_eof 				VALUE "SI".
 	77 	suc2-estado						PIC XX VALUE "NO". 
 		88 suc2-estado_eof 				VALUE "SI".
-	77 	suc3-estado 					PIC XX. 
-		88 suc3-estado_ok 				VALUE "NO".
+	77 	suc3-estado 					PIC XX VALUE "NO".
 		88 suc3-estado_eof 				VALUE "SI".
-	77 	times-estado 					PIC XX. 
-		88 times-estado_ok 				VALUE "NO".
+	77 	times-estado 					PIC XX VALUE "NO".
 		88 times-estado_eof				VALUE "SI".
 	77 	sucursales-estado 				PIC XX. 
 		88 sucursales-estado_ok 		VALUE "NO".
@@ -112,6 +110,7 @@ WORKING-STORAGE SECTION.
 
 	*> ITERADOR
 	01 I 								PIC 9(2) VALUE 0.
+	01 II 								PIC XX.
 	01 archALeer 						PIC 9(1) VALUE 0.
 	*> 1=suc1, 2=suc2, 3=suc3, 4=Times
 	*> REGISTROS MINIMOS:
@@ -125,7 +124,8 @@ WORKING-STORAGE SECTION.
 PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
-
+	
+	DISPLAY "entra primer ciclo general"
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_ARMO_V_SUCURSALES.
@@ -133,6 +133,7 @@ PROCEDURE DIVISION.
 	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI" or I IS > 20.
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
+	DISPLAY "sale primer ciclo general".
 	STOP RUN.   
 
 
@@ -205,12 +206,14 @@ PROCEDURE DIVISION.
 *> se trae a memoria el archivo de tipos_clase con su respectivo formato y de ser necesario su indice
 
 5_CICLO_ARCHIVOS.
+	DISPLAY "entra segundo ciclo profesor".
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.	
 	PERFORM 52_CICLO_PROFESORES UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_ant_min IS NOT = prof_min or I IS > 20).
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
 	MOVE prof_min TO prof_ant_min.
+	DISPLAY "sale segundo ciclo profesor".
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
@@ -230,29 +233,30 @@ PROCEDURE DIVISION.
 	*> inicializo prof_min sabiendo que hay un registro q la va a llenar 
 	MOVE "NNNNN" TO prof_min.
 	*> caso 1º, ventaja que nadie la pudo inicializar antes
-	IF (fin_suc1 IS = "NO")THEN
+	IF (fin_suc1 IS not = "SI")THEN
 		MOVE suc1_num TO prof_min
 	END-IF.
 	*> caso 2º, completo
-	IF (fin_suc2 IS = "NO" AND prof_min IS = "NNNNN")THEN
+	IF (fin_suc2 IS not = "SI" AND prof_min IS = "NNNNN")THEN
 		MOVE suc2_num TO prof_min
-	ELSE IF (fin_suc2 IS = "NO" AND suc2_num IS < prof_min) THEN 	
+	ELSE IF (fin_suc2 IS not = "SI" AND suc2_num IS < prof_min) THEN 	
 		MOVE suc2_num TO prof_min
 	END-IF.
 	*> caso 3º, completo
-	IF (fin_suc3 IS = "NO" AND prof_min IS = "NNNNN")THEN
+	IF (fin_suc3 IS not = "SI" AND prof_min IS = "NNNNN")THEN
 		MOVE suc3_num TO prof_min
-	ELSE IF (fin_suc3 IS = "NO" AND suc3_num IS < prof_min) THEN 	
+	ELSE IF (fin_suc3 IS not = "SI" AND suc3_num IS < prof_min) THEN 	
 		MOVE suc3_num TO prof_min
 	END-IF.
     *> caso 4º, completo
-	IF (fin_times IS = "NO" AND prof_min IS = "NNNNN")THEN
+	IF (fin_times IS not = "SI" AND prof_min IS = "NNNNN")THEN
 		MOVE tim_num TO prof_min
-	ELSE IF (fin_times IS = "NO" AND tim_num IS < prof_min) THEN 	
+	ELSE IF (fin_times IS not = "SI" AND tim_num IS < prof_min) THEN 	
 		MOVE tim_num TO prof_min
 	END-IF.
 
 52_CICLO_PROFESORES.
+	DISPLAY "entra tercer ciclo fecha".
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
 	PERFORM 522_CICLO_FECHA UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_min IS NOT = prof_ant_min or fecha_min IS NOT = fecha_ant_min or I IS > 20).
@@ -260,6 +264,7 @@ PROCEDURE DIVISION.
 	PERFORM 523_ESCRIBO_TOT_FECHA.
 	MOVE prof_min TO prof_ant_min.
 	MOVE fecha_min TO fecha_ant_min.
+	DISPLAY "sale tercer ciclo fecha".
 
 53_ESCRIBO_TOT_PROF.
 *> se debe escribir en el archivo master, el total por profesor como indica el enunciado
@@ -277,59 +282,61 @@ PROCEDURE DIVISION.
 *> dejar en el fecha_anterior el min y ademas ya comparar con ese minimo. Por lo 
 *>tanto, ademas, se debera dejar guardado en el arch_min el archivo de donde se saco 
 *>este registro minimo.
+	DISPLAY "si".
 
 	MOVE "NNNNN" TO prof_min.
 	MOVE "NNNNNNNN" TO fecha_min.
 	*> caso 1º, ventaja que nadie la pudo inicializar antes
-	IF (fin_suc1 IS = "NO")THEN
+	IF (fin_suc1 IS not = "SI")THEN
 		MOVE suc1_num TO prof_min
 		MOVE suc1_fecha TO fecha_min
 		MOVE 1 TO archALeer
 	END-IF.
 	*> caso 2º, completo
-	IF (fin_suc2 IS = "NO" AND prof_min IS = "NNNNN")THEN
+	IF (fin_suc2 IS not = "SI" AND prof_min IS = "NNNNN")THEN
 		MOVE suc2_num TO prof_min
 		MOVE suc2_fecha TO fecha_min
 		MOVE 2 TO archALeer		
-	ELSE IF (fin_suc2 IS = "NO" AND suc2_num IS < prof_min) THEN 	
+	ELSE IF (fin_suc2 IS not = "SI" AND suc2_num IS < prof_min) THEN 	
 		MOVE suc2_num TO prof_min
 		MOVE suc2_fecha TO fecha_min
 		MOVE 2 TO archALeer		
-	ELSE IF (fin_suc2 IS = "NO" AND suc2_num IS = prof_min AND suc2_fecha IS < fecha_min) THEN 	
+	ELSE IF (fin_suc2 IS not = "SI" AND suc2_num IS = prof_min AND suc2_fecha IS < fecha_min) THEN 	
 		MOVE suc2_num TO prof_min
 		MOVE suc2_fecha TO fecha_min
 		MOVE 2 TO archALeer		
 	END-IF.
 	*> caso 3º, completo
-	IF (fin_suc3 IS = "NO" AND prof_min IS = "NNNNN")THEN
+	IF (fin_suc3 IS not = "SI" AND prof_min IS = "NNNNN")THEN
 		MOVE suc3_num TO prof_min
 		MOVE suc3_fecha TO fecha_min
 		MOVE 3 TO archALeer		
-	ELSE IF (fin_suc3 IS = "NO" AND suc3_num IS < prof_min) THEN 	
+	ELSE IF (fin_suc3 IS not = "SI" AND suc3_num IS < prof_min) THEN 	
 		MOVE suc3_num TO prof_min
 		MOVE suc3_fecha TO fecha_min
 		MOVE 3 TO archALeer
-	ELSE IF (fin_suc3 IS = "NO" AND suc3_num IS = prof_min AND suc3_fecha IS < fecha_min) THEN 	
+	ELSE IF (fin_suc3 IS not = "SI" AND suc3_num IS = prof_min AND suc3_fecha IS < fecha_min) THEN 	
 		MOVE suc3_num TO prof_min
 		MOVE suc3_fecha TO fecha_min
 		MOVE 3 TO archALeer
 	END-IF.
     *> caso 4º, completo
-	IF (fin_times IS = "NO" AND prof_min IS = "NNNNN")THEN
+	IF (fin_times IS not = "SI" AND prof_min IS = "NNNNN")THEN
 		MOVE tim_num TO prof_min
 		MOVE tim_fecha TO fecha_min
 		MOVE 4 TO archALeer
-	ELSE IF (fin_times IS = "NO" AND tim_num IS < prof_min) THEN 	
+	ELSE IF (fin_times IS not = "SI" AND tim_num IS < prof_min) THEN 	
 		MOVE tim_num TO prof_min
 		MOVE tim_fecha TO fecha_min
 		MOVE 4 TO archALeer
-	ELSE IF (fin_times IS = "NO" AND tim_num IS = prof_min AND tim_fecha IS < fecha_min) THEN 	
+	ELSE IF (fin_times IS not = "SI" AND tim_num IS = prof_min AND tim_fecha IS < fecha_min) THEN 	
 		MOVE tim_num TO prof_min
 		MOVE tim_fecha TO fecha_min
 		MOVE 4 TO archALeer
 	END-IF.
 
 522_CICLO_FECHA.
+	PERFORM 521_OBTENER_REG_MIN.
 	PERFORM 5221_SUMAR_TOTALES.
 	PERFORM 5222_SUMAR_EN_MATRIZ.
 	PERFORM 5223_ESCRIBO_MOV.
@@ -345,8 +352,6 @@ PROCEDURE DIVISION.
 *> se debe sumar en todos los totales: 	01 TOT_GRAL, TOT_POR_PROF y TOT_POR_FECHA el movimiento individual.
 
 5222_SUMAR_EN_MATRIZ.
-	ADD 1 TO I.
-	DISPLAY archALeer.
 *> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
 
 5223_ESCRIBO_MOV.
@@ -375,9 +380,7 @@ PROCEDURE DIVISION.
 *> se debe escribir el movimiento individual como lo dice el enunciado
 
 5224_LEO_ARCH_MIN.
-	ADD 1 TO I.
-
-    IF (archALeer IS = 1)THEN
+	IF (archALeer IS = 1)THEN
 		READ suc1 AT END MOVE "SI" TO fin_suc1
     END-IF.
 	IF (archALeer IS = 2)THEN
@@ -389,3 +392,11 @@ PROCEDURE DIVISION.
     IF (archALeer IS = 4)THEN
 		READ tim  AT END MOVE "SI" TO fin_times
     END-IF.
+
+    MOVE prof_min TO prof_ant_min.
+    MOVE fecha_min TO fecha_ant_min.
+
+	ADD 1 TO I.
+	DISPLAY archALeer.
+	MOVE I TO II.
+	DISPLAY II.	
