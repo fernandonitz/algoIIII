@@ -108,9 +108,6 @@ WORKING-STORAGE SECTION.
 	01 fin_sucur 						PIC XX   VALUE "NO".
 	01 fin_tipCla 						PIC XX   VALUE "NO".
 
-	*> ITERADOR
-	01 I 								PIC 9(2) VALUE 0.
-	01 II 								PIC XX.
 	01 archALeer 						PIC 9(1) VALUE 0.
 	*> 1=suc1, 2=suc2, 3=suc3, 4=Times
 	*> REGISTROS MINIMOS:
@@ -125,15 +122,13 @@ PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
 	
-	DISPLAY "entra primer ciclo general"
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_ARMO_V_SUCURSALES.
 	PERFORM 4_ARMO_V_TIPOS_CLASE.
-	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI" or I IS > 20.
+	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
-	DISPLAY "sale primer ciclo general".
 	STOP RUN.   
 
 
@@ -196,8 +191,6 @@ PROCEDURE DIVISION.
 		MOVE tim_fecha TO fecha_ant_min
 	END-IF.
 
-	display prof_ant_min.
-	display fecha_ant_min.
 
 3_ARMO_V_SUCURSALES.
 *> se trae a memoria el archivo de sucursales con su respectivo formato y de ser necesario su indice
@@ -206,14 +199,14 @@ PROCEDURE DIVISION.
 *> se trae a memoria el archivo de tipos_clase con su respectivo formato y de ser necesario su indice
 
 5_CICLO_ARCHIVOS.
-	DISPLAY "entra segundo ciclo profesor".
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.	
-	PERFORM 52_CICLO_PROFESORES UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_ant_min IS NOT = prof_min or I IS > 20).
+	PERFORM 52_CICLO_PROFESORES UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_ant_min IS NOT = prof_min).
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
 	MOVE prof_min TO prof_ant_min.
-	DISPLAY "sale segundo ciclo profesor".
+    MOVE "CORTE POR PROFESOR      " to reg_mae.
+	WRITE reg_mae.
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
@@ -256,15 +249,18 @@ PROCEDURE DIVISION.
 	END-IF.
 
 52_CICLO_PROFESORES.
-	DISPLAY "entra tercer ciclo fecha".
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
-	PERFORM 522_CICLO_FECHA UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_min IS NOT = prof_ant_min or fecha_min IS NOT = fecha_ant_min or I IS > 20).
+	PERFORM 522_CICLO_FECHA UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_min IS NOT = prof_ant_min or fecha_min IS NOT = fecha_ant_min).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
 	PERFORM 523_ESCRIBO_TOT_FECHA.
-	MOVE prof_min TO prof_ant_min.
+
+	IF (fecha_ant_min IS NOT = fecha_min ) THEN 	
+		MOVE "CORTE POR FECHA         " to reg_mae
+		WRITE reg_mae
+	END-IF.
+
 	MOVE fecha_min TO fecha_ant_min.
-	DISPLAY "sale tercer ciclo fecha".
 
 53_ESCRIBO_TOT_PROF.
 *> se debe escribir en el archivo master, el total por profesor como indica el enunciado
@@ -282,7 +278,6 @@ PROCEDURE DIVISION.
 *> dejar en el fecha_anterior el min y ademas ya comparar con ese minimo. Por lo 
 *>tanto, ademas, se debera dejar guardado en el arch_min el archivo de donde se saco 
 *>este registro minimo.
-	DISPLAY "si".
 
 	MOVE "NNNNN" TO prof_min.
 	MOVE "NNNNNNNN" TO fecha_min.
@@ -341,7 +336,7 @@ PROCEDURE DIVISION.
 	PERFORM 5222_SUMAR_EN_MATRIZ.
 	PERFORM 5223_ESCRIBO_MOV.
 	PERFORM 5224_LEO_ARCH_MIN.
-	
+
 523_ESCRIBO_TOT_FECHA.
 *> se debe escribir en el archivo master, el total por fecha como indica el enunciado
 
@@ -392,11 +387,3 @@ PROCEDURE DIVISION.
     IF (archALeer IS = 4)THEN
 		READ tim  AT END MOVE "SI" TO fin_times
     END-IF.
-
-    MOVE prof_min TO prof_ant_min.
-    MOVE fecha_min TO fecha_ant_min.
-
-	ADD 1 TO I.
-	DISPLAY archALeer.
-	MOVE I TO II.
-	DISPLAY II.	
