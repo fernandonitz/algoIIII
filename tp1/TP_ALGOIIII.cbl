@@ -64,7 +64,7 @@ FD SUCURSALES LABEL RECORD IS STANDARD
 	  03 suc_cuit 						PIC 9(11).
 
 FD TIPOSCLASE LABEL RECORD IS STANDARD 
-		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/tiposclase.txt".
+		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/tiposClase.txt".
 01 reg_tipclase.
 	  03 tip_clase_suc 					PIC X(4).
 	  03 tip_clase_razon 				PIC X(20).
@@ -84,11 +84,9 @@ WORKING-STORAGE SECTION.
 		88 suc3-estado_eof 				VALUE "SI".
 	77 	times-estado 					PIC XX VALUE "NO".
 		88 times-estado_eof				VALUE "SI".
-	77 	sucursales-estado 				PIC XX. 
-		88 sucursales-estado_ok 		VALUE "NO".
+	77 	sucursales-estado 				PIC XX VALUE "NO". 
 		88 sucursales-estado_eof 		VALUE "SI".
-	77 	tipos_clase-estado 				PIC XX. 
-		88 tipos_clase-estado_ok 		VALUE "NO".
+	77 	tipos_clase-estado 				PIC XX VALUE "NO". 
 		88 tipos_clase-estado_eof 		VALUE "SI".
 	77 	mae-estado 						PIC XX.
 		88 mae-estado_ok 				VALUE "NO". 
@@ -118,7 +116,22 @@ WORKING-STORAGE SECTION.
  	01 fecha_min 						PIC X(8).
  	01 fecha_ant_min 					PIC X(8).
 
+ 	01 I 								PIC 9(3).
+ 	01 II 								PIC 9(4).
+ 	*> vector de sucursales 
+	01 v_sucursales.
+	  03 v_sucursal OCCURS 3 TIMES ascending key is v_suc_num indexed by ind.
+	  	05 v_suc_num 					PIC X(3).
+	  	05 v_suc_razon 					PIC 9(25).
+	  	05 v_suc_dire 					PIC X(20).
+	  	05 v_suc_tel 					PIC X(20).
+	  	05 v_suc_cuit 					PIC 9(11).
 
+	01 v_tipos_clase.
+	  03 v_tipo_clase OCCURS 50 TIMES ascending key is v_tip_clase_num indexed by indi.
+	  	05 v_tip_clase_num 				PIC X(4).
+	  	05 v_tip_clase_desc 			PIC X(20).
+	  	05 v_tip_clase_tarifa			PIC 9(5)V99.
 
 PROCEDURE DIVISION.
 
@@ -126,8 +139,8 @@ PROCEDURE DIVISION.
 	
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
-	PERFORM 3_ARMO_V_SUCURSALES.
-	PERFORM 4_ARMO_V_TIPOS_CLASE.
+	PERFORM 3_CICLO_SUCURSALES UNTIL sucursales-estado_eof.
+	PERFORM 4_CICLO_TIPOS_CLASE UNTIL tipos_clase-estado_eof.
 	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
@@ -197,11 +210,18 @@ PROCEDURE DIVISION.
 	END-IF.
 
 
-3_ARMO_V_SUCURSALES.
+3_CICLO_SUCURSALES.
 *> se trae a memoria el archivo de sucursales con su respectivo formato y de ser necesario su indice
+	READ sucursales AT END MOVE "SI" TO sucursales-estado.
+	MOVE suc_suc TO ind.
+	MOVE reg_sucursal TO v_sucursal(ind).
 
-4_ARMO_V_TIPOS_CLASE.
+4_CICLO_TIPOS_CLASE.
 *> se trae a memoria el archivo de tipos_clase con su respectivo formato y de ser necesario su indice
+	READ tiposclase AT END MOVE "SI" TO tipos_clase-estado.
+	MOVE tip_clase_suc TO indi.
+	MOVE reg_tipclase TO v_tipo_clase(indi).
+
 
 5_CICLO_ARCHIVOS.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
@@ -217,6 +237,8 @@ PROCEDURE DIVISION.
 		DISPLAY "---------------".
 		DISPLAY prof_ant_min.
 		DISPLAY prof_min.
+		MOVE TOT_X_PROF TO TOT_IMPR.
+		DISPLAY TOT_IMPR.
 		DISPLAY "---------------".
 		*>...
 	PERFORM 53_ESCRIBO_TOT_PROF.
@@ -225,6 +247,13 @@ PROCEDURE DIVISION.
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
+	MOVE 1 TO I.
+	PERFORM HOLA UNTIL I > 50.
+
+HOLA.
+	MOVE I TO indi.
+	DISPLAY v_tipo_clase(indi).
+	ADD 1 TO I.
 
 7_CIERRO_ARCHIVOS.
 	CLOSE SUC1.
@@ -281,6 +310,8 @@ PROCEDURE DIVISION.
 		DISPLAY "---------------"
 		DISPLAY fecha_ant_min
 		DISPLAY fecha_min
+		MOVE TOT_X_FECHA TO TOT_IMPR
+		DISPLAY TOT_IMPR
 		DISPLAY "---------------"
 
 	END-IF.
@@ -368,7 +399,6 @@ PROCEDURE DIVISION.
 *> CICLO IND--------------------------------------------------------------
 
 5221_SUMAR_TOTALES.
-*> se debe sumar en todos los totales: 	01 TOT_GRAL, TOT_POR_PROF y TOT_POR_FECHA el movimiento individual.
     IF (archALeer IS = 1 and fin_suc1 IS NOT = "SI")THEN
 		ADD suc1_horas TO TOT_GRAL
 		ADD suc1_horas TO TOT_X_PROF
@@ -403,7 +433,6 @@ PROCEDURE DIVISION.
 
 5223_ESCRIBO_MOV.
 	
-
     IF (archALeer IS = 1 and fin_suc1 IS NOT = "SI")THEN
 	    MOVE reg_suc1 to reg_mae
 		WRITE reg_mae
