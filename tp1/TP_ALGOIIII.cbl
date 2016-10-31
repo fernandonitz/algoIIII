@@ -206,17 +206,22 @@ PROCEDURE DIVISION.
 5_CICLO_ARCHIVOS.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.	
-	PERFORM 52_CICLO_PROFESORES UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_ant_min IS NOT = prof_min).
+	PERFORM 52_CICLO_PROFESORES UNTIL 
+	((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") 
+	or (prof_ant_min IS NOT = suc1_num and prof_ant_min IS NOT = suc2_num and prof_ant_min IS NOT = suc3_num and prof_ant_min IS NOT = tim_num)).
+	
+		*> corte control...	
+	    MOVE "CORTE POR PROFESOR      " to reg_mae.
+	    WRITE reg_mae.
+	    DISPLAY "CORTE POR PROFESOR".
+		DISPLAY "---------------".
+		DISPLAY prof_ant_min.
+		DISPLAY prof_min.
+		DISPLAY "---------------".
+		*>...
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
 	MOVE prof_min TO prof_ant_min.
-	*> corte control...	
-    MOVE "CORTE POR PROFESOR      " to reg_mae.
-    DISPLAY "CORTE POR PROFESOR".
-	MOVE TOT_X_PROF TO TOT_IMPR.
-	DISPLAY TOT_IMPR.
-	WRITE reg_mae.
-	*>...
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
@@ -261,16 +266,23 @@ PROCEDURE DIVISION.
 52_CICLO_PROFESORES.
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
-	PERFORM 522_CICLO_FECHA UNTIL ((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") or prof_min IS NOT = prof_ant_min or fecha_min IS NOT = fecha_ant_min).
+	PERFORM 522_CICLO_FECHA UNTIL 
+	((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") 
+	or (prof_ant_min IS NOT = suc1_num and prof_ant_min IS NOT = suc2_num and prof_ant_min IS NOT = suc3_num and prof_ant_min IS NOT = tim_num)
+	or (fecha_ant_min IS NOT = suc1_fecha and fecha_ant_min IS NOT = suc2_fecha and fecha_ant_min IS NOT = suc3_fecha and fecha_ant_min IS NOT = tim_fecha)).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
+	
 	PERFORM 523_ESCRIBO_TOT_FECHA.
 
 	IF (fecha_ant_min IS NOT = fecha_min ) THEN 	
 		MOVE "CORTE POR FECHA         " to reg_mae
 		WRITE reg_mae
 		DISPLAY "CORTE POR FECHA"
-		MOVE TOT_X_FECHA TO TOT_IMPR
-		DISPLAY TOT_IMPR
+		DISPLAY "---------------"
+		DISPLAY fecha_ant_min
+		DISPLAY fecha_min
+		DISPLAY "---------------"
+
 	END-IF.
 
 	MOVE fecha_min TO fecha_ant_min.
@@ -347,6 +359,7 @@ PROCEDURE DIVISION.
 	PERFORM 5222_SUMAR_EN_MATRIZ.
 	PERFORM 5223_ESCRIBO_MOV.
 	PERFORM 5224_LEO_ARCH_MIN.
+	PERFORM 5225_BLOQUEO.
 
 523_ESCRIBO_TOT_FECHA.
 *> se debe escribir en el archivo master, el total por fecha como indica el enunciado
@@ -425,4 +438,22 @@ PROCEDURE DIVISION.
     END-IF.    
     IF (archALeer IS = 4)THEN
 		READ tim  AT END MOVE "SI" TO fin_times
+    END-IF.
+
+5225_BLOQUEO.
+	*> "XXXXX99999999XXXXXXX9999" es cuenta bloqueada  
+    IF (fin_suc1 IS = "SI")THEN
+	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_suc1
+    END-IF.
+	
+    IF (fin_suc2 IS = "SI")THEN
+	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_suc2
+    END-IF.
+	
+    IF (fin_suc3 IS = "SI")THEN
+	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_suc3
+    END-IF.
+	
+    IF (fin_times IS = "SI")THEN
+	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_time
     END-IF.
