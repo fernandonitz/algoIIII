@@ -131,12 +131,110 @@ WORKING-STORAGE SECTION.
 	  03 v_tipo_clase OCCURS 50 TIMES ascending key is v_tip_clase_num indexed by indi.
 	  	05 v_tip_clase_num 				PIC X(4).
 	  	05 v_tip_clase_desc 			PIC X(20).
-	  	05 v_tip_clase_tarifa			PIC 9(5)V99.
+	  	05 v_tip_clase_tarifa			PIC 9(5)V99. 	
 
+	01 cant_hojas						PIC 9(4) VALUE 1.
+	01 cant_hojas_imp					PIC X(5).
+	01 linea_impr 						PIC X(100).
+	01 nom_prof  						PIC X(25) VALUE " ". 
+
+	01 encabezado.
+	  03 fechaHoy 						PIC X(5) VALUE "Fecha".
+	  03 nada 							PIC X(1) VALUE " ".
+	  03 enc_fecha_hoy					PIC X(10) VALUE	"XX/XX/XXXX".
+	  03 nada 							PIC X(45) VALUE ALL " ".
+	  03 hoja 							PIC X(4) VALUE "Hoja".
+	  03 nada3 							PIC X(1) VALUE " ".
+	  03 enc_num_hoja					PIC X(3) VALUE "XXX".
+
+	01 titulo.
+	  03 nada 							PIC X(20) VALUE ALL " ".
+	  03 tit 							PIC X(26) VALUE "Listado de horas aplicadas".
+
+	01 titulo_prof. 						
+	  03 prof 							PIC X(9) VALUE "Profesor:".
+	  03 nada 							PIC X(1) VALUE " ". 
+	  03 tit_num_prof					PIC X(5) VALUE "XXXXX".
+	  03 nada 							PIC X(10) VALUE ALL " ".
+	  03 nom_prof 						PIC X(7) VALUE "Nombre:".
+	  03 tit_nom_prof					PIC X(25) VALUE ALL "X".
+
+	01 culumnas_mat.
+	  03 nada 							PIC X(5) VALUE ALL " ".
+	  03 fecha 							PIC X(5) VALUE "Fecha".
+	  03 nada 							PIC X(4) VALUE ALL " ".
+	  03 sucurs 						PIC X(8) VALUE "Sucursal".
+	  03 nada 							PIC X(8) VALUE ALL " ".
+	  03 tip_cla 						PIC X(13) VALUE "Tipo de clase".
+	  03 nada 							PIC X(7) VALUE ALL " ".
+	  03 tarif 							PIC X(6) VALUE "Tarifa".
+  	  03 nada 							PIC X(4) VALUE ALL " ".
+	  03 horas 							PIC X(5) VALUE "Horas".
+	  03 nada 							PIC X(4) VALUE ALL " ".
+	  03 impor 							PIC X(7) VALUE "Importe".
+
+	01 linea.
+	  03 guiones 						PIC X(80) VALUE ALL "-".
+
+	01 reg1_con_fecha. 
+	  03 nada 							PIC X(2) VALUE ALL " ".
+	  03 reg1_fecha   					PIC X(10) VALUE "XX/XX/XXXX".
+	  03 nada 							PIC X(4) VALUE ALL " ".
+	  03 reg1_suc 						PIC X(3) VALUE "999".
+	  03 nada 							PIC X(7) VALUE ALL " ".
+	  03 reg1_tip_cla					PIC X(20) VALUE ALL "X".
+	  03 nada 							PIC X(3) VALUE ALL " ".
+	  03 reg1_tarifa 					PIC X(8) VALUE "ZZZZ9,99".
+	  03 nada 							PIC X(3) VALUE ALL " ".
+	  03 reg1_horas 					PIC X(5) VALUE "Z9,99".
+	  03 nada 							PIC X(3) VALUE ALL " ".
+	  03 reg1_impor						PIC X(10) VALUE "ZZZZZZ9,99".
+
+
+	01 reg2_sin_fecha. 
+	  03 nada 							PIC X(16) VALUE ALL " ".
+	  03 reg2_suc 						PIC X(3) VALUE "999".
+	  03 nada 							PIC X(7) VALUE ALL " ".
+	  03 reg2_tip_cla					PIC X(20) VALUE ALL "X".
+	  03 nada 							PIC X(3) VALUE ALL " ".
+	  03 reg2_tarifa 					PIC X(8) VALUE "ZZZZ9,99".
+	  03 nada 							PIC X(3) VALUE ALL " ".
+	  03 reg2_horas 					PIC X(5) VALUE "Z9,99".
+	  03 nada 							PIC X(3) VALUE ALL " ".
+	  03 reg2_impor						PIC X(10) VALUE "ZZZZZZ9,99".
+
+	01 separador_tot.
+	  03 nada 							PIC X(60) VALUE ALL " ".
+	  03 sep 							PIC X(5) VALUE ALL "-".
+	  03 nada 							PIC X(3) VALUE ALL " ".
+	  03 sep 							PIC X(10) VALUE ALL "-".
+	
+	01 reg3_tot_fecha. 
+	  03 nada 							PIC X(2) VALUE ALL " ".
+	  03 reg3_tit 						PIC X(17) VALUE "Totales por fecha".
+	  03 nada 							PIC X(40) VALUE ALL " ".
+	  03 reg3_horas 					PIC X(6) VALUE "ZZ9,99".
+	  03 nada 							PIC X(2) VALUE ALL " ".
+	  03 reg3_impor						PIC X(11) VALUE "ZZZZZZZ9,99".
+
+	01 reg4_tot_prof. 
+	  03 nada 							PIC X(2) VALUE ALL " ".
+	  03 reg4_tit 						PIC X(20) VALUE "Totales por profesor".
+	  03 nada 							PIC X(36) VALUE ALL " ".
+	  03 reg4_horas 					PIC X(7) VALUE "ZZZ9,99".
+	  03 nada 							PIC X(1) VALUE ALL " ".
+	  03 reg4_impor						PIC X(12) VALUE "ZZZZZZZZ9,99".
+
+	01 reg5_tot_gral. 
+	  03 nada 							PIC X(2) VALUE ALL " ".
+	  03 reg5_tit 						PIC X(13) VALUE "Total general".
+	  03 nada 							PIC X(50) VALUE ALL " ".
+	  03 reg5_impor						PIC X(13) VALUE "ZZZZZZZZZ9,99".
+	
 PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
-	
+	PERFORM ARMAR_PAG.	
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_CICLO_SUCURSALES UNTIL sucursales-estado_eof.
@@ -144,9 +242,9 @@ PROCEDURE DIVISION.
 	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
-	DISPLAY "TOT GRAL".
+	*>DISPLAY "TOT GRAL".
 	MOVE TOT_GRAL TO TOT_IMPR.
-	DISPLAY TOT_IMPR.
+	*>DISPLAY TOT_IMPR.
 	STOP RUN.   
 
 
@@ -233,13 +331,13 @@ PROCEDURE DIVISION.
 		*> corte control...	
 	    MOVE "CORTE POR PROFESOR      " to reg_mae.
 	    WRITE reg_mae.
-	    DISPLAY "CORTE POR PROFESOR".
-		DISPLAY "---------------".
-		DISPLAY prof_ant_min.
-		DISPLAY prof_min.
-		MOVE TOT_X_PROF TO TOT_IMPR.
-		DISPLAY TOT_IMPR.
-		DISPLAY "---------------".
+	    *>DISPLAY "CORTE POR PROFESOR".
+		*>DISPLAY "---------------".
+		*>DISPLAY prof_ant_min.
+		*>DISPLAY prof_min.
+		*>MOVE TOT_X_PROF TO TOT_IMPR.
+		*>DISPLAY TOT_IMPR.
+		*>DISPLAY "---------------".
 		*>...
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
@@ -252,7 +350,7 @@ PROCEDURE DIVISION.
 
 HOLA.
 	MOVE I TO indi.
-	DISPLAY v_tipo_clase(indi).
+	*>DISPLAY v_tipo_clase(indi).
 	ADD 1 TO I.
 
 7_CIERRO_ARCHIVOS.
@@ -306,13 +404,13 @@ HOLA.
 	IF (fecha_ant_min IS NOT = fecha_min ) THEN 	
 		MOVE "CORTE POR FECHA         " to reg_mae
 		WRITE reg_mae
-		DISPLAY "CORTE POR FECHA"
-		DISPLAY "---------------"
-		DISPLAY fecha_ant_min
-		DISPLAY fecha_min
+		*>DISPLAY "CORTE POR FECHA"
+		*>DISPLAY "---------------"
+		*>DISPLAY fecha_ant_min
+		*>DISPLAY fecha_min
 		MOVE TOT_X_FECHA TO TOT_IMPR
-		DISPLAY TOT_IMPR
-		DISPLAY "---------------"
+		*>DISPLAY TOT_IMPR
+		*>DISPLAY "---------------"
 
 	END-IF.
 
@@ -486,3 +584,26 @@ HOLA.
     IF (fin_times IS = "SI")THEN
 	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_time
     END-IF.
+ARMAR_PAG.
+	DISPLAY encabezado.
+	DISPLAY titulo.
+	DISPLAY titulo_prof.
+	DISPLAY culumnas_mat.
+	DISPLAY linea.
+	DISPLAY reg1_con_fecha. 
+	DISPLAY reg2_sin_fecha. 
+	DISPLAY separador_tot.
+	DISPLAY reg3_tot_fecha. 
+	DISPLAY culumnas_mat.
+	DISPLAY linea.
+	DISPLAY reg1_con_fecha. 
+	DISPLAY reg2_sin_fecha. 
+	DISPLAY separador_tot.
+	DISPLAY reg3_tot_fecha. 
+	DISPLAY reg4_tot_prof. 
+	DISPLAY reg5_tot_gral. 
+
+
+ARMAR_FECHA.
+*>	DISPLAY '--------------------------------------------------------------'.
+
