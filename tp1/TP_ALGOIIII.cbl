@@ -95,7 +95,7 @@ WORKING-STORAGE SECTION.
     	88 FIN-ENTRADA 					VALUE "S".
 
    	*> TOTALES PARCIALES:
-	01 TOT_GRAL 						PIC 9(6) VALUE 0.
+	01 TOT_GRAL 						PIC 9(13) VALUE 0.
 	01 TOT_X_PROF 						PIC 9(6) VALUE 0.
 	01 TOT_X_FECHA 						PIC 9(6) VALUE 0.
 	01 TOT_X_SUC 						PIC 9(6) VALUE 0.
@@ -115,6 +115,9 @@ WORKING-STORAGE SECTION.
 	01 prof_ant_min						PIC X(5).
  	01 fecha_min 						PIC X(8).
  	01 fecha_ant_min 					PIC X(8).
+ 	01 cant_horas_a_sumar				PIC 9(2)V99.
+
+ 	01 cont_titulo 						PIC 9(2) VALUE 0.
 
  	01 I 								PIC 9(3).
  	01 II 								PIC 9(4).
@@ -127,16 +130,34 @@ WORKING-STORAGE SECTION.
 	  	05 v_suc_tel 					PIC X(20).
 	  	05 v_suc_cuit 					PIC 9(11).
 
+	01 aux_sucursal.
+	  03 aux_suc_num 					PIC X(3).
+	  03 aux_suc_razon 					PIC 9(25).
+	  03 aux_suc_dire 					PIC X(20).
+	  03 aux_suc_tel 					PIC X(20).
+	  03 aux_suc_cuit 					PIC 9(11).
+
+
+
 	01 v_tipos_clase.
 	  03 v_tipo_clase OCCURS 50 TIMES ascending key is v_tip_clase_num indexed by indi.
 	  	05 v_tip_clase_num 				PIC X(4).
 	  	05 v_tip_clase_desc 			PIC X(20).
 	  	05 v_tip_clase_tarifa			PIC 9(5)V99. 	
 
-	01 cant_hojas						PIC 9(4) VALUE 1.
-	01 cant_hojas_imp					PIC X(5).
+	01 aux_tipo_clase.
+	  03 aux_tip_clase_num 				PIC X(4).
+	  03 aux_tip_clase_desc 			PIC X(20).
+      03 aux_tip_clase_tarifa			PIC 9(5)V99. 	
+
+
+	01 cant_hojas						PIC 9(3) VALUE 1.
+	01 fecha_hoy 						PIC X(10) VALUE "12/12/1234".
+
 	01 linea_impr 						PIC X(100).
 	01 nom_prof  						PIC X(25) VALUE " ". 
+	01 sucursal_impr					PIC X(3) VALUE "999".
+
 
 	01 encabezado.
 	  03 fechaHoy 						PIC X(5) VALUE "Fecha".
@@ -184,9 +205,9 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(7) VALUE ALL " ".
 	  03 reg1_tip_cla					PIC X(20) VALUE ALL "X".
 	  03 nada 							PIC X(3) VALUE ALL " ".
-	  03 reg1_tarifa 					PIC X(8) VALUE "ZZZZ9,99".
+	  03 reg1_tarifa 					PIC 9(6)V99.
 	  03 nada 							PIC X(3) VALUE ALL " ".
-	  03 reg1_horas 					PIC X(5) VALUE "Z9,99".
+	  03 reg1_horas 					PIC 9(2)V99.
 	  03 nada 							PIC X(3) VALUE ALL " ".
 	  03 reg1_impor						PIC X(10) VALUE "ZZZZZZ9,99".
 
@@ -197,9 +218,9 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(7) VALUE ALL " ".
 	  03 reg2_tip_cla					PIC X(20) VALUE ALL "X".
 	  03 nada 							PIC X(3) VALUE ALL " ".
-	  03 reg2_tarifa 					PIC X(8) VALUE "ZZZZ9,99".
+	  03 reg2_tarifa 					PIC 9(6)V99.
 	  03 nada 							PIC X(3) VALUE ALL " ".
-	  03 reg2_horas 					PIC X(5) VALUE "Z9,99".
+	  03 reg2_horas 					PIC 9(2)V99.
 	  03 nada 							PIC X(3) VALUE ALL " ".
 	  03 reg2_impor						PIC X(10) VALUE "ZZZZZZ9,99".
 
@@ -213,7 +234,7 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(2) VALUE ALL " ".
 	  03 reg3_tit 						PIC X(17) VALUE "Totales por fecha".
 	  03 nada 							PIC X(40) VALUE ALL " ".
-	  03 reg3_horas 					PIC X(6) VALUE "ZZ9,99".
+	  03 reg3_horas 					PIC 9(3)V99.
 	  03 nada 							PIC X(2) VALUE ALL " ".
 	  03 reg3_impor						PIC X(11) VALUE "ZZZZZZZ9,99".
 
@@ -221,7 +242,7 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(2) VALUE ALL " ".
 	  03 reg4_tit 						PIC X(20) VALUE "Totales por profesor".
 	  03 nada 							PIC X(36) VALUE ALL " ".
-	  03 reg4_horas 					PIC X(7) VALUE "ZZZ9,99".
+	  03 reg4_horas 					PIC 9(4)V99.
 	  03 nada 							PIC X(1) VALUE ALL " ".
 	  03 reg4_impor						PIC X(12) VALUE "ZZZZZZZZ9,99".
 
@@ -234,7 +255,7 @@ WORKING-STORAGE SECTION.
 PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
-	PERFORM ARMAR_PAG.	
+	PERFORM ARMAR_ENCABEZADO.
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_CICLO_SUCURSALES UNTIL sucursales-estado_eof.
@@ -243,6 +264,7 @@ PROCEDURE DIVISION.
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
 	*>DISPLAY "TOT GRAL".
+	PERFORM ARMAR_DISPLAY_GRAL.
 	MOVE TOT_GRAL TO TOT_IMPR.
 	*>DISPLAY TOT_IMPR.
 	STOP RUN.   
@@ -329,8 +351,8 @@ PROCEDURE DIVISION.
 	or (prof_ant_min IS NOT = suc1_num and prof_ant_min IS NOT = suc2_num and prof_ant_min IS NOT = suc3_num and prof_ant_min IS NOT = tim_num)).
 	
 		*> corte control...	
-	    MOVE "CORTE POR PROFESOR      " to reg_mae.
-	    WRITE reg_mae.
+	    *>MOVE "CORTE POR PROFESOR      " to reg_mae.
+	    *>WRITE reg_mae.
 	    *>DISPLAY "CORTE POR PROFESOR".
 		*>DISPLAY "---------------".
 		*>DISPLAY prof_ant_min.
@@ -345,13 +367,14 @@ PROCEDURE DIVISION.
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
-	MOVE 1 TO I.
-	PERFORM HOLA UNTIL I > 50.
 
-HOLA.
-	MOVE I TO indi.
+*>	MOVE 1 TO I.
+*>	PERFORM HOLA UNTIL I > 50.
+
+*>HOLA.
+*>	MOVE I TO indi.
 	*>DISPLAY v_tipo_clase(indi).
-	ADD 1 TO I.
+*>	ADD 1 TO I.
 
 7_CIERRO_ARCHIVOS.
 	CLOSE SUC1.
@@ -391,6 +414,7 @@ HOLA.
 	END-IF.
 
 52_CICLO_PROFESORES.
+	PERFORM ARMAR_DISPLAY_FECHA_ANT.
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
 	PERFORM 522_CICLO_FECHA UNTIL 
@@ -418,6 +442,7 @@ HOLA.
 
 53_ESCRIBO_TOT_PROF.
 *> se debe escribir en el archivo master, el total por profesor como indica el enunciado
+	PERFORM ARMAR_DISPLAY_PROF.
 
 54_IMPRIMO_TOT_PROF.
 *> se debe imprimir por pantalla (como dice el enunciado el total por prof, hasheando si fuese el caso al vector de sucursales y al vector de tipos_clase)
@@ -492,39 +517,49 @@ HOLA.
 
 523_ESCRIBO_TOT_FECHA.
 *> se debe escribir en el archivo master, el total por fecha como indica el enunciado
-
+	PERFORM ARMAR_DISPLAY_FECHA_DESP.
 
 *> CICLO IND--------------------------------------------------------------
 
 5221_SUMAR_TOTALES.
     IF (archALeer IS = 1 and fin_suc1 IS NOT = "SI")THEN
-		ADD suc1_horas TO TOT_GRAL
-		ADD suc1_horas TO TOT_X_PROF
-		ADD suc1_horas TO TOT_X_FECHA
-		ADD suc1_horas TO TOT_X_SUC
+		MOVE suc1_horas TO cant_horas_a_sumar
+	    MOVE suc1_suc TO sucursal_impr
+
+	    MOVE suc1_suc TO ind
+	    MOVE suc1_clase TO indi
     END-IF.
 	
     IF (archALeer IS = 2 and fin_suc2 IS NOT = "SI")THEN
-		ADD suc2_horas TO TOT_GRAL
-		ADD suc2_horas TO TOT_X_PROF
-		ADD suc2_horas TO TOT_X_FECHA
-		ADD suc2_horas TO TOT_X_SUC
+		MOVE suc2_horas TO cant_horas_a_sumar
+	    MOVE suc2_suc TO sucursal_impr
+
+	    MOVE suc2_suc TO ind
+	    MOVE suc2_clase TO indi
     END-IF.
 	
     IF (archALeer IS = 3 and fin_suc3 IS NOT = "SI")THEN
-		ADD suc3_horas TO TOT_GRAL
-		ADD suc3_horas TO TOT_X_PROF
-		ADD suc3_horas TO TOT_X_FECHA
-		ADD suc3_horas TO TOT_X_SUC
+   		MOVE suc3_horas TO cant_horas_a_sumar
+   		MOVE suc3_suc TO sucursal_impr
+
+	    MOVE suc3_suc TO ind
+	    MOVE suc3_clase TO indi
     END-IF.
 	
     IF (archALeer IS = 4 and fin_times IS NOT = "SI")THEN
-		ADD tim_horas TO TOT_GRAL
-		ADD tim_horas TO TOT_X_PROF
-		ADD tim_horas TO TOT_X_FECHA
-		ADD tim_horas TO TOT_X_SUC
+		MOVE tim_horas TO cant_horas_a_sumar
+		MOVE tim_suc TO sucursal_impr
+
+	    MOVE tim_suc TO ind
+	    MOVE tim_clase TO indi
     END-IF.
 
+	ADD cant_horas_a_sumar TO TOT_GRAL.
+	ADD cant_horas_a_sumar TO TOT_X_PROF.
+	ADD cant_horas_a_sumar TO TOT_X_FECHA.
+	ADD cant_horas_a_sumar TO TOT_X_SUC.
+
+    PERFORM ARMAR_DISPLAY_FECHA.
 
 5222_SUMAR_EN_MATRIZ.
 *> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
@@ -584,26 +619,68 @@ HOLA.
     IF (fin_times IS = "SI")THEN
 	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_time
     END-IF.
-ARMAR_PAG.
-	DISPLAY encabezado.
-	DISPLAY titulo.
-	DISPLAY titulo_prof.
+
+*>ARMAR_PAG.
+*>	PERFORM ARMAR_ENCABEZADO.
+*>	PERFORM ARMAR_DISPLAY_FECHA.
+*>	PERFORM ARMAR_DISPLAY_FECHA.
+*>	PERFORM ARMAR_DISPLAY_PROF.
+*>	PERFORM ARMAR_DISPLAY_GRAL.
+
+*> falta
+ARMAR_ENCABEZADO.
+	IF (cont_titulo IS = 0)THEN
+		MOVE fecha_hoy TO fechaHoy
+		MOVE cant_hojas TO enc_num_hoja
+		DISPLAY encabezado
+		DISPLAY titulo
+		MOVE prof_min TO tit_num_prof
+		*>MOVE nom_prof_min TO nom_prof.
+		DISPLAY titulo_prof
+		DISPLAY " "
+	END-IF.
+
+*> listo
+ARMAR_DISPLAY_FECHA_ANT.	
 	DISPLAY culumnas_mat.
 	DISPLAY linea.
-	DISPLAY reg1_con_fecha. 
-	DISPLAY reg2_sin_fecha. 
+
+*> falta
+ARMAR_DISPLAY_FECHA.
+	IF (cont_titulo IS = 0)THEN
+		MOVE cant_horas_a_sumar TO reg1_horas
+		MOVE sucursal_impr TO reg1_suc
+		MOVE fecha_min to reg1_fecha		
+		MOVE v_tipo_clase(indi) TO aux_tipo_clase
+		MOVE aux_tipo_clase TO reg1_tip_cla
+		MOVE aux_tip_clase_tarifa TO reg1_tarifa
+		DISPLAY reg1_con_fecha 
+	ELSE
+		MOVE cant_horas_a_sumar TO reg2_horas
+		MOVE sucursal_impr TO reg2_suc 
+		MOVE v_tipo_clase(indi) TO aux_tipo_clase
+		MOVE aux_tipo_clase TO reg2_tip_cla
+		MOVE aux_tip_clase_tarifa TO reg1_tarifa
+		DISPLAY reg2_sin_fecha
+	END-IF.
+
+*> falta	
+ARMAR_DISPLAY_FECHA_DESP.
 	DISPLAY separador_tot.
+
+	MOVE TOT_X_FECHA TO reg3_horas.
+	*>MOVE tot_impor TO reg3_impor.
 	DISPLAY reg3_tot_fecha. 
-	DISPLAY culumnas_mat.
-	DISPLAY linea.
-	DISPLAY reg1_con_fecha. 
-	DISPLAY reg2_sin_fecha. 
-	DISPLAY separador_tot.
-	DISPLAY reg3_tot_fecha. 
+	DISPLAY " ".
+
+*> falta
+ARMAR_DISPLAY_PROF.
+	MOVE TOT_X_PROF TO reg4_horas.
+	*>MOVE  ... TO reg4_impor
 	DISPLAY reg4_tot_prof. 
+	DISPLAY " ".
+
+*> listo	
+ARMAR_DISPLAY_GRAL.
+	MOVE TOT_GRAL TO reg5_impor.
 	DISPLAY reg5_tot_gral. 
-
-
-ARMAR_FECHA.
-*>	DISPLAY '--------------------------------------------------------------'.
-
