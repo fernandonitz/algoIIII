@@ -95,6 +95,9 @@ WORKING-STORAGE SECTION.
     	88 FIN-ENTRADA 					VALUE "S".
 
    	*> TOTALES PARCIALES:
+   	01 TARIFA_TOT						PIC 9(11)V99 VALUE 0.
+   	01 TARIFA_PROF 						PIC 9(10)V99 VALUE 0.
+
 	01 TOT_GRAL 						PIC 9(13) VALUE 0.
 	01 TOT_X_PROF 						PIC 9(6) VALUE 0.
 	01 TOT_X_FECHA 						PIC 9(6) VALUE 0.
@@ -118,6 +121,7 @@ WORKING-STORAGE SECTION.
  	01 cant_horas_a_sumar				PIC 9(2)V99.
 
  	01 cont_titulo 						PIC 9(2) VALUE 0.
+ 	01 tarifa 							PIC 9(11)V99 VALUE 0.
 
  	01 I 								PIC 9(3).
  	01 II 								PIC 9(4).
@@ -209,7 +213,7 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(3) VALUE ALL " ".
 	  03 reg1_horas 					PIC 9(2)V99.
 	  03 nada 							PIC X(3) VALUE ALL " ".
-	  03 reg1_impor						PIC X(10) VALUE "ZZZZZZ9,99".
+	  03 reg1_impor						PIC 9(8)V99.
 
 
 	01 reg2_sin_fecha. 
@@ -222,7 +226,7 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(3) VALUE ALL " ".
 	  03 reg2_horas 					PIC 9(2)V99.
 	  03 nada 							PIC X(3) VALUE ALL " ".
-	  03 reg2_impor						PIC X(10) VALUE "ZZZZZZ9,99".
+	  03 reg2_impor						PIC 9(8)V99.
 
 	01 separador_tot.
 	  03 nada 							PIC X(60) VALUE ALL " ".
@@ -236,7 +240,7 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(40) VALUE ALL " ".
 	  03 reg3_horas 					PIC 9(3)V99.
 	  03 nada 							PIC X(2) VALUE ALL " ".
-	  03 reg3_impor						PIC X(11) VALUE "ZZZZZZZ9,99".
+	  03 reg3_impor						PIC 9(9)V99..
 
 	01 reg4_tot_prof. 
 	  03 nada 							PIC X(2) VALUE ALL " ".
@@ -244,13 +248,13 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(36) VALUE ALL " ".
 	  03 reg4_horas 					PIC 9(4)V99.
 	  03 nada 							PIC X(1) VALUE ALL " ".
-	  03 reg4_impor						PIC X(12) VALUE "ZZZZZZZZ9,99".
+	  03 reg4_impor						PIC 9(10)V99.
 
 	01 reg5_tot_gral. 
 	  03 nada 							PIC X(2) VALUE ALL " ".
 	  03 reg5_tit 						PIC X(13) VALUE "Total general".
 	  03 nada 							PIC X(50) VALUE ALL " ".
-	  03 reg5_impor						PIC X(13) VALUE "ZZZZZZZZZ9,99".
+	  03 reg5_impor						PIC 9(11)V99.
 	
 PROCEDURE DIVISION.
 
@@ -345,7 +349,8 @@ PROCEDURE DIVISION.
 
 5_CICLO_ARCHIVOS.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
-	MOVE 0 TO TOT_X_PROF.	
+	MOVE 0 TO TOT_X_PROF.
+	MOVE 0 TO TARIFA_PROF.	
 	PERFORM 52_CICLO_PROFESORES UNTIL 
 	((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") 
 	or (prof_ant_min IS NOT = suc1_num and prof_ant_min IS NOT = suc2_num and prof_ant_min IS NOT = suc3_num and prof_ant_min IS NOT = tim_num)).
@@ -354,12 +359,12 @@ PROCEDURE DIVISION.
 	    *>MOVE "CORTE POR PROFESOR      " to reg_mae.
 	    *>WRITE reg_mae.
 	    *>DISPLAY "CORTE POR PROFESOR".
-		*>DISPLAY "---------------".
-		*>DISPLAY prof_ant_min.
-		*>DISPLAY prof_min.
+		DISPLAY "---------------".
+		DISPLAY prof_ant_min.
+		DISPLAY prof_min.
 		*>MOVE TOT_X_PROF TO TOT_IMPR.
 		*>DISPLAY TOT_IMPR.
-		*>DISPLAY "---------------".
+		DISPLAY "---------------".
 		*>...
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
@@ -414,7 +419,7 @@ PROCEDURE DIVISION.
 	END-IF.
 
 52_CICLO_PROFESORES.
-	PERFORM ARMAR_DISPLAY_FECHA_ANT.
+	PERFORM ARMAR_DISPLAY_FECHA_ANT
 	PERFORM 521_OBTENER_REG_MIN.
 	MOVE 0 TO TOT_X_FECHA.
 	PERFORM 522_CICLO_FECHA UNTIL 
@@ -422,23 +427,22 @@ PROCEDURE DIVISION.
 	or (prof_ant_min IS NOT = suc1_num and prof_ant_min IS NOT = suc2_num and prof_ant_min IS NOT = suc3_num and prof_ant_min IS NOT = tim_num)
 	or (fecha_ant_min IS NOT = suc1_fecha and fecha_ant_min IS NOT = suc2_fecha and fecha_ant_min IS NOT = suc3_fecha and fecha_ant_min IS NOT = tim_fecha)).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
-	
-	PERFORM 523_ESCRIBO_TOT_FECHA.
+	PERFORM 523_ESCRIBO_TOT_FECHA
 
-	IF (fecha_ant_min IS NOT = fecha_min ) THEN 	
+	IF (fecha_ant_min IS NOT = fecha_min) THEN 	
 		MOVE "CORTE POR FECHA         " to reg_mae
 		WRITE reg_mae
 		*>DISPLAY "CORTE POR FECHA"
-		*>DISPLAY "---------------"
-		*>DISPLAY fecha_ant_min
-		*>DISPLAY fecha_min
+		DISPLAY "---------------"
+		DISPLAY fecha_ant_min
+		DISPLAY fecha_min
 		MOVE TOT_X_FECHA TO TOT_IMPR
 		*>DISPLAY TOT_IMPR
-		*>DISPLAY "---------------"
-
+		DISPLAY "---------------"
+		MOVE fecha_min TO fecha_ant_min
 	END-IF.
 
-	MOVE fecha_min TO fecha_ant_min.
+	
 
 53_ESCRIBO_TOT_PROF.
 *> se debe escribir en el archivo master, el total por profesor como indica el enunciado
@@ -654,13 +658,27 @@ ARMAR_DISPLAY_FECHA.
 		MOVE v_tipo_clase(indi) TO aux_tipo_clase
 		MOVE aux_tipo_clase TO reg1_tip_cla
 		MOVE aux_tip_clase_tarifa TO reg1_tarifa
+		MOVE aux_tip_clase_tarifa TO tarifa
+		MULTIPLY cant_horas_a_sumar BY tarifa
+		ADD tarifa TO TARIFA_PROF
+		ADD tarifa TO TARIFA_TOT
+
+		MOVE tarifa TO reg1_impor
+
 		DISPLAY reg1_con_fecha 
 	ELSE
 		MOVE cant_horas_a_sumar TO reg2_horas
 		MOVE sucursal_impr TO reg2_suc 
 		MOVE v_tipo_clase(indi) TO aux_tipo_clase
 		MOVE aux_tipo_clase TO reg2_tip_cla
+		MOVE aux_tip_clase_tarifa TO tarifa
+		MULTIPLY cant_horas_a_sumar BY tarifa
+		ADD tarifa TO TARIFA_PROF
+		ADD tarifa TO TARIFA_TOT
+
 		MOVE aux_tip_clase_tarifa TO reg1_tarifa
+		
+
 		DISPLAY reg2_sin_fecha
 	END-IF.
 
@@ -675,12 +693,12 @@ ARMAR_DISPLAY_FECHA_DESP.
 
 *> falta
 ARMAR_DISPLAY_PROF.
-	MOVE TOT_X_PROF TO reg4_horas.
+	MOVE TARIFA_PROF TO reg4_horas.
 	*>MOVE  ... TO reg4_impor
 	DISPLAY reg4_tot_prof. 
 	DISPLAY " ".
 
 *> listo	
 ARMAR_DISPLAY_GRAL.
-	MOVE TOT_GRAL TO reg5_impor.
+	MOVE TARIFA_TOT TO reg5_impor.
 	DISPLAY reg5_tot_gral. 
