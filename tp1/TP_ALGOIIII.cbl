@@ -97,6 +97,7 @@ WORKING-STORAGE SECTION.
    	*> TOTALES PARCIALES:
    	01 TARIFA_TOT						PIC 9(11)V99 VALUE 0.
    	01 TARIFA_PROF 						PIC 9(10)V99 VALUE 0.
+   	01 TARIFA_FECHA 					PIC 9(9)V99 VALUE 0.
 
 	01 TOT_GRAL 						PIC 9(13) VALUE 0.
 	01 TOT_X_PROF 						PIC 9(6) VALUE 0.
@@ -120,7 +121,7 @@ WORKING-STORAGE SECTION.
  	01 fecha_ant_min 					PIC X(8).
  	01 cant_horas_a_sumar				PIC 9(2)V99.
 
- 	01 cont_titulo 						PIC 9(2) VALUE 0.
+ 	01 cont_titulo						PIC 9(2) VALUE 0.
  	01 tarifa 							PIC 9(11)V99 VALUE 0.
 
  	01 I 								PIC 9(3).
@@ -259,7 +260,6 @@ WORKING-STORAGE SECTION.
 PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
-	PERFORM ARMAR_ENCABEZADO.
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_CICLO_SUCURSALES UNTIL sucursales-estado_eof.
@@ -291,48 +291,29 @@ PROCEDURE DIVISION.
 	READ suc3 AT END MOVE "SI" TO fin_suc3.
 	READ TIM  AT END MOVE "SI" TO fin_times.
 
+CALCULO_ANT_FECHA_MIN.
 	*> inicializo prof_ant sabiendo que hay un registro q la va a llenar 
-	MOVE "NNNNN" TO prof_ant_min.
 	MOVE "NNNNNNNN" TO fecha_ant_min.
 	*> caso 1º, ventaja que nadie la pudo inicializar antes
-	IF (fin_suc1 IS = "NO")THEN
-		MOVE suc1_num TO prof_ant_min
+	IF (fin_suc1 IS = "NO" AND prof_ant_min IS = suc1_num)THEN
 		MOVE suc1_fecha TO fecha_ant_min
+		MOVE 1 TO archALeer		
 	END-IF.
 	*> caso 2º, completo
-	IF (fin_suc2 IS = "NO" AND prof_ant_min IS = "NNNNN")THEN
-		MOVE suc2_num TO prof_ant_min
-		MOVE suc2_fecha TO fecha_ant_min		
-	ELSE IF (fin_suc2 IS = "NO" AND suc2_num IS < prof_ant_min) THEN 	
-		MOVE suc2_num TO prof_ant_min
+	IF (fin_suc2 IS = "NO" AND prof_ant_min IS = suc2_num AND (fecha_ant_min IS = "NNNNN" OR fecha_ant_min IS > suc2_fecha))THEN
 		MOVE suc2_fecha TO fecha_ant_min
-	ELSE IF (fin_suc2 IS = "NO" AND suc2_num IS = prof_ant_min AND suc2_fecha IS < fecha_ant_min) THEN 	
-		MOVE suc2_num TO prof_ant_min
-		MOVE suc2_fecha TO fecha_ant_min
+		MOVE 2 TO archALeer				
 	END-IF.
 	*> caso 3º, completo
-	IF (fin_suc3 IS = "NO" AND prof_ant_min IS = "NNNNN")THEN
-		MOVE suc3_num TO prof_ant_min
-		MOVE suc3_fecha TO fecha_ant_min
-	ELSE IF (fin_suc3 IS = "NO" AND suc3_num IS < prof_ant_min) THEN 	
-		MOVE suc3_num TO prof_ant_min
-		MOVE suc3_fecha TO fecha_ant_min
-	ELSE IF (fin_suc3 IS = "NO" AND suc3_num IS = prof_ant_min AND suc3_fecha IS < fecha_ant_min) THEN 	
-		MOVE suc3_num TO prof_ant_min
-		MOVE suc3_fecha TO fecha_ant_min
+	IF (fin_suc3 IS = "NO" AND prof_ant_min IS = suc3_num AND (fecha_ant_min IS = "NNNNN" OR fecha_ant_min IS > suc3_fecha))THEN
+		MOVE suc3_fecha TO fecha_ant_min		
+		MOVE 3 TO archALeer		
 	END-IF.
     *> caso 4º, completo
-	IF (fin_times IS = "NO" AND prof_ant_min IS = "NNNNN")THEN
-		MOVE tim_num TO prof_ant_min
-		MOVE tim_fecha TO fecha_ant_min
-	ELSE IF (fin_times IS = "NO" AND tim_num IS < prof_ant_min) THEN 	
-		MOVE tim_num TO prof_ant_min
-		MOVE tim_fecha TO fecha_ant_min
-	ELSE IF (fin_times IS = "NO" AND tim_num IS = prof_ant_min AND tim_fecha IS < fecha_ant_min) THEN 	
-		MOVE tim_num TO prof_ant_min
-		MOVE tim_fecha TO fecha_ant_min
+	IF (fin_times IS = "NO" AND prof_ant_min IS = tim_num AND (fecha_ant_min IS = "NNNNN" OR fecha_ant_min IS > tim_fecha))THEN
+		MOVE tim_fecha TO fecha_ant_min		
+		MOVE 4 TO archALeer		
 	END-IF.
-
 
 3_CICLO_SUCURSALES.
 *> se trae a memoria el archivo de sucursales con su respectivo formato y de ser necesario su indice
@@ -351,24 +332,14 @@ PROCEDURE DIVISION.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
 	MOVE 0 TO TOT_X_PROF.
 	MOVE 0 TO TARIFA_PROF.	
+	MOVE 0  TO cont_titulo.
+	PERFORM ARMAR_ENCABEZADO.
+	MOVE 0 TO cont_titulo.
 	PERFORM 52_CICLO_PROFESORES UNTIL 
 	((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") 
 	or (prof_ant_min IS NOT = suc1_num and prof_ant_min IS NOT = suc2_num and prof_ant_min IS NOT = suc3_num and prof_ant_min IS NOT = tim_num)).
-	
-		*> corte control...	
-	    *>MOVE "CORTE POR PROFESOR      " to reg_mae.
-	    *>WRITE reg_mae.
-	    *>DISPLAY "CORTE POR PROFESOR".
-		DISPLAY "---------------".
-		DISPLAY prof_ant_min.
-		DISPLAY prof_min.
-		*>MOVE TOT_X_PROF TO TOT_IMPR.
-		*>DISPLAY TOT_IMPR.
-		DISPLAY "---------------".
-		*>...
 	PERFORM 53_ESCRIBO_TOT_PROF.
 	PERFORM 54_IMPRIMO_TOT_PROF.
-	MOVE prof_min TO prof_ant_min.
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
@@ -394,53 +365,36 @@ PROCEDURE DIVISION.
 
 51_OBTENER_REG_MIN_PROF.
 	*> inicializo prof_min sabiendo que hay un registro q la va a llenar 
-	MOVE "NNNNN" TO prof_min.
+	MOVE "NNNNN" TO prof_ant_min.
 	*> caso 1º, ventaja que nadie la pudo inicializar antes
 	IF (fin_suc1 IS not = "SI")THEN
-		MOVE suc1_num TO prof_min
+		MOVE suc1_num TO prof_ant_min
 	END-IF.
 	*> caso 2º, completo
-	IF (fin_suc2 IS not = "SI" AND prof_min IS = "NNNNN")THEN
-		MOVE suc2_num TO prof_min
-	ELSE IF (fin_suc2 IS not = "SI" AND suc2_num IS < prof_min) THEN 	
-		MOVE suc2_num TO prof_min
+	IF (fin_suc2 IS not = "SI" AND (prof_ant_min IS = "NNNNN" OR prof_ant_min IS > suc2_num))THEN
+		MOVE suc2_num TO prof_ant_min
 	END-IF.
 	*> caso 3º, completo
-	IF (fin_suc3 IS not = "SI" AND prof_min IS = "NNNNN")THEN
-		MOVE suc3_num TO prof_min
-	ELSE IF (fin_suc3 IS not = "SI" AND suc3_num IS < prof_min) THEN 	
-		MOVE suc3_num TO prof_min
+	IF (fin_suc3 IS not = "SI" AND (prof_ant_min IS = "NNNNN" OR prof_ant_min IS > suc3_num))THEN
+		MOVE suc3_num TO prof_ant_min
 	END-IF.
     *> caso 4º, completo
-	IF (fin_times IS not = "SI" AND prof_min IS = "NNNNN")THEN
-		MOVE tim_num TO prof_min
-	ELSE IF (fin_times IS not = "SI" AND tim_num IS < prof_min) THEN 	
-		MOVE tim_num TO prof_min
+	IF (fin_times IS not = "SI" AND (prof_ant_min IS = "NNNNN" OR prof_ant_min IS > tim_num))THEN
+		MOVE tim_num TO prof_ant_min
 	END-IF.
 
 52_CICLO_PROFESORES.
 	PERFORM ARMAR_DISPLAY_FECHA_ANT
-	PERFORM 521_OBTENER_REG_MIN.
+	PERFORM CALCULO_ANT_FECHA_MIN.
+	MOVE 0 TO cont_titulo.
 	MOVE 0 TO TOT_X_FECHA.
+	MOVE 0 TO TARIFA_FECHA.
 	PERFORM 522_CICLO_FECHA UNTIL 
 	((fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI") 
 	or (prof_ant_min IS NOT = suc1_num and prof_ant_min IS NOT = suc2_num and prof_ant_min IS NOT = suc3_num and prof_ant_min IS NOT = tim_num)
 	or (fecha_ant_min IS NOT = suc1_fecha and fecha_ant_min IS NOT = suc2_fecha and fecha_ant_min IS NOT = suc3_fecha and fecha_ant_min IS NOT = tim_fecha)).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
-	PERFORM 523_ESCRIBO_TOT_FECHA
-
-	IF (fecha_ant_min IS NOT = fecha_min) THEN 	
-		MOVE "CORTE POR FECHA         " to reg_mae
-		WRITE reg_mae
-		*>DISPLAY "CORTE POR FECHA"
-		DISPLAY "---------------"
-		DISPLAY fecha_ant_min
-		DISPLAY fecha_min
-		MOVE TOT_X_FECHA TO TOT_IMPR
-		*>DISPLAY TOT_IMPR
-		DISPLAY "---------------"
-		MOVE fecha_min TO fecha_ant_min
-	END-IF.
+	PERFORM 523_ESCRIBO_TOT_FECHA.
 
 	
 
@@ -512,12 +466,16 @@ PROCEDURE DIVISION.
 	END-IF.
 
 522_CICLO_FECHA.
-	PERFORM 521_OBTENER_REG_MIN.
+	IF (cont_titulo IS > 60) THEN
+		PERFORM ARMAR_ENCABEZADO
+	END-IF.
+	PERFORM CALCULO_ANT_FECHA_MIN.
 	PERFORM 5221_SUMAR_TOTALES.
 	PERFORM 5222_SUMAR_EN_MATRIZ.
 	PERFORM 5223_ESCRIBO_MOV.
 	PERFORM 5224_LEO_ARCH_MIN.
 	PERFORM 5225_BLOQUEO.
+	ADD 1 TO cont_titulo.
 
 523_ESCRIBO_TOT_FECHA.
 *> se debe escribir en el archivo master, el total por fecha como indica el enunciado
@@ -624,81 +582,73 @@ PROCEDURE DIVISION.
 	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_time
     END-IF.
 
-*>ARMAR_PAG.
-*>	PERFORM ARMAR_ENCABEZADO.
-*>	PERFORM ARMAR_DISPLAY_FECHA.
-*>	PERFORM ARMAR_DISPLAY_FECHA.
-*>	PERFORM ARMAR_DISPLAY_PROF.
-*>	PERFORM ARMAR_DISPLAY_GRAL.
-
-*> falta
+*> falta 
 ARMAR_ENCABEZADO.
 	IF (cont_titulo IS = 0)THEN
 		MOVE fecha_hoy TO fechaHoy
 		MOVE cant_hojas TO enc_num_hoja
 		DISPLAY encabezado
 		DISPLAY titulo
-		MOVE prof_min TO tit_num_prof
-		*>MOVE nom_prof_min TO nom_prof.
+		MOVE prof_ant_min TO tit_num_prof
+*>		MOVE nom_prof_min TO nom_prof
 		DISPLAY titulo_prof
 		DISPLAY " "
+		ADD 1 TO cant_hojas
+		ADD 4 TO cont_titulo
 	END-IF.
 
-*> listo
 ARMAR_DISPLAY_FECHA_ANT.	
 	DISPLAY culumnas_mat.
 	DISPLAY linea.
+	ADD 2 TO cont_titulo.
 
-*> falta
 ARMAR_DISPLAY_FECHA.
 	IF (cont_titulo IS = 0)THEN
 		MOVE cant_horas_a_sumar TO reg1_horas
 		MOVE sucursal_impr TO reg1_suc
-		MOVE fecha_min to reg1_fecha		
+		MOVE fecha_ant_min to reg1_fecha		
 		MOVE v_tipo_clase(indi) TO aux_tipo_clase
 		MOVE aux_tipo_clase TO reg1_tip_cla
 		MOVE aux_tip_clase_tarifa TO reg1_tarifa
 		MOVE aux_tip_clase_tarifa TO tarifa
 		MULTIPLY cant_horas_a_sumar BY tarifa
+		ADD tarifa TO TARIFA_FECHA
 		ADD tarifa TO TARIFA_PROF
 		ADD tarifa TO TARIFA_TOT
-
 		MOVE tarifa TO reg1_impor
-
+		ADD 1 TO cont_titulo
 		DISPLAY reg1_con_fecha 
 	ELSE
 		MOVE cant_horas_a_sumar TO reg2_horas
 		MOVE sucursal_impr TO reg2_suc 
 		MOVE v_tipo_clase(indi) TO aux_tipo_clase
 		MOVE aux_tipo_clase TO reg2_tip_cla
+		MOVE aux_tip_clase_tarifa TO reg2_tarifa
 		MOVE aux_tip_clase_tarifa TO tarifa
 		MULTIPLY cant_horas_a_sumar BY tarifa
+		ADD tarifa TO TARIFA_FECHA
 		ADD tarifa TO TARIFA_PROF
 		ADD tarifa TO TARIFA_TOT
-
-		MOVE aux_tip_clase_tarifa TO reg1_tarifa
-		
-
+		MOVE tarifa TO reg2_impor
+		ADD 1 TO cont_titulo
 		DISPLAY reg2_sin_fecha
 	END-IF.
 
-*> falta	
 ARMAR_DISPLAY_FECHA_DESP.
 	DISPLAY separador_tot.
-
 	MOVE TOT_X_FECHA TO reg3_horas.
-	*>MOVE tot_impor TO reg3_impor.
+	MOVE TARIFA_FECHA TO reg3_impor.
 	DISPLAY reg3_tot_fecha. 
 	DISPLAY " ".
+	ADD 3 TO cont_titulo.
 
-*> falta
 ARMAR_DISPLAY_PROF.
-	MOVE TARIFA_PROF TO reg4_horas.
-	*>MOVE  ... TO reg4_impor
+	MOVE TOT_X_PROF TO reg4_horas.
+	MOVE TARIFA_PROF TO reg4_impor
 	DISPLAY reg4_tot_prof. 
 	DISPLAY " ".
+	ADD 2 TO cont_titulo.
 
-*> listo	
 ARMAR_DISPLAY_GRAL.
 	MOVE TARIFA_TOT TO reg5_impor.
 	DISPLAY reg5_tot_gral. 
