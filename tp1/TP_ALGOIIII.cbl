@@ -23,7 +23,10 @@ FD SUC1 LABEL RECORD IS STANDARD
 		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/suc1.txt".
 01 reg_suc1.
 	  03 suc1_num 						PIC X(5).
-	  03 suc1_fecha 					PIC 9(8).
+	  03 suc1_fecha.
+	  	05 suc1_fecha_ano				PIC 9(4).
+	  	05 suc1_fecha_mes				PIC 9(2).
+	  	05 suc1_fecha_dia				PIC 9(2).
 	  03 suc1_suc 						PIC X(3).
 	  03 suc1_clase 					PIC X(4).
 	  03 suc1_horas 					PIC 9(2)V99.
@@ -32,7 +35,10 @@ FD SUC2 LABEL RECORD IS STANDARD
 		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/suc2.txt".
 01 reg_suc2.
 	  03 suc2_num 						PIC X(5).
-	  03 suc2_fecha 					PIC 9(8).
+	  03 suc2_fecha.
+	  	05 suc2_fecha_ano				PIC 9(4).
+	  	05 suc2_fecha_mes				PIC 9(2).
+	  	05 suc2_fecha_dia				PIC 9(2).
 	  03 suc2_suc 						PIC X(3).
 	  03 suc2_clase 					PIC X(4).
 	  03 suc2_horas 					PIC 9(2)V99.
@@ -41,7 +47,10 @@ FD SUC3 LABEL RECORD IS STANDARD
 		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/suc3.txt".
 01 reg_suc3.
 	  03 suc3_num 						PIC X(5).
-	  03 suc3_fecha 					PIC 9(8).
+	  03 suc3_fecha.
+	  	05 suc3_fecha_ano				PIC 9(4).
+	  	05 suc3_fecha_mes				PIC 9(2).
+	  	05 suc3_fecha_dia				PIC 9(2).
 	  03 suc3_suc 						PIC X(3).
 	  03 suc3_clase 					PIC X(4).
 	  03 suc3_horas 					PIC 9(2)V99.
@@ -59,7 +68,10 @@ FD TIM LABEL RECORD IS STANDARD
 		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/times.txt".
 01 reg_time.
 	  03 tim_num 						PIC X(5).
-	  03 tim_fecha 						PIC 9(8).
+	  03 tim_fecha.
+	  	05 tim_fecha_ano				PIC 9(4).
+	  	05 tim_fecha_mes				PIC 9(2).
+	  	05 tim_fecha_dia				PIC 9(2).
 	  03 tim_suc 						PIC X(3).
 	  03 tim_clase 						PIC X(4).
 	  03 tim_horas 						PIC 9(2)V99.
@@ -139,6 +151,7 @@ WORKING-STORAGE SECTION.
  	01 cont_titulo						PIC 9(2) VALUE 0.
  	01 tarifa 							PIC 9(11)V99 VALUE 0.
 
+ 	01 ano 								PIC X(4).
  	01 I 								PIC 9(3).
  	01 II 								PIC 9(4).
  	*> vector de sucursales 
@@ -157,7 +170,28 @@ WORKING-STORAGE SECTION.
 	  03 aux_suc_tel 					PIC X(20).
 	  03 aux_suc_cuit 					PIC 9(11).
 
+	01 matriz_horas.
+	  03 v_suc OCCURS 3 TIMES ascending key is m_suc indexed by suci.
+	  	05 v_ano OCCURS 5 TIMES ascending key is m_ano indexed by anoi.
+	  	   07 v_mes OCCURS 12 TIMES ascending key is m_mes indexed by mesi.
+	  	   	  09 m_suc					PIC X(3).
+	  	   	  09 m_ano					PIC X(4).
+	  	   	  09 m_mes					PIC X(2).
+	  	   	  09 m_horas 				PIC 9(3) VALUE 0.
 
+	01 tot_ano.
+	  03 v_suc_ano OCCURS 3 TIMES ascending key is m2_suc indexed by sucii.
+	    05 v_tot_ano OCCURS 5 TIMES ascending key is m2_ano indexed by anoii.
+	  	  07 m2_suc						PIC X(3).
+	  	  07 m2_ano 					PIC X(4).
+	  	  07 m2_horas 					PIC 9(4) VALUE 0.
+
+	01 tot_mes.
+	  03 v_tot_mes OCCURS 12 TIMES ascending key is m3_mes indexed by mesii.
+	  	05 m3_mes						PIC X(2).
+	  	05 m3_horas						PIC 9(3) VALUE 0.
+
+	01 tot_tot_mat 						PIC 9(4) VALUE 0.
 
 	01 v_tipos_clase.
 	  03 v_tipo_clase OCCURS 50 TIMES ascending key is v_tip_clase_num indexed by indi.
@@ -191,6 +225,11 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(20) VALUE ALL " ".
 	  03 tit 							PIC X(26) VALUE "Listado de horas aplicadas".
 
+	01 titulo2. 
+	  03 nada 							PIC X(2) VALUE ALL " ".
+	  03 tit 							PIC X(75) VALUE "Listado de Estadístico de Horas aplicadas por año y mes".
+
+
 	01 titulo_prof. 						
 	  03 prof 							PIC X(9) VALUE "Profesor:".
 	  03 nada 							PIC X(1) VALUE " ". 
@@ -213,6 +252,130 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(4) VALUE ALL " ".
 	  03 impor 							PIC X(7) VALUE "Importe".
 
+	01 culumna_mat2.
+	  03 nada 							PIC X(4) VALUE ALL " ". 
+	  03 surcursal 						PIC X(8) VALUE "SUCURSAL".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 ano_p 							PIC X(3) VALUE "ANO".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 ene 							PIC X(3) VALUE "ENE".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 feb 							PIC X(3) VALUE "FEB".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 mar 							PIC X(3) VALUE "MAR".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 abr 							PIC X(3) VALUE "ABR".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 may 							PIC X(3) VALUE "MAY".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 jun 							PIC X(3) VALUE "JUN".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 jul 							PIC X(3) VALUE "JUL".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 ago 							PIC X(3) VALUE "AGO".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 sep 							PIC X(3) VALUE "SEP".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 oct 							PIC X(3) VALUE "OCT".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 nov 							PIC X(3) VALUE "NOV".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 dic 							PIC X(3) VALUE "DIC".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 tot 							PIC X(5) VALUE "TOTAL".
+
+	01 reg_mat_horas_con_suc.
+	  03 nada 							PIC X(6) VALUE ALL " ". 
+	  03 reg_mat1_suc 					PIC X(5).
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_ano_p 					PIC X(4).
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_ene 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_feb 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_mar 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_abr 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_may 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_jun 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_jul 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_ago 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_sep 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_oct 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_nov 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_dic 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat1_tot 					PIC X(5) VALUE ALL "0".
+
+
+	01 reg_mat_horas_sin_suc.
+	  03 nada 							PIC X(13) VALUE ALL " ".
+	  03 reg_mat2_ano_p 					PIC X(4).
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_ene 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_feb 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_mar 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_abr 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_may 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_jun 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_jul 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_ago 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_sep 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_oct 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_nov 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_dic 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat2_tot 					PIC X(5) VALUE ALL "0".
+
+	01 reg_mat_horas_tot.
+	  03 tot 							PIC X(7) VALUE "Totales".
+	  03 nada 							PIC X(12) VALUE ALL " ".
+	  03 reg_mat3_ene 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_feb 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_mar 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_abr 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_may 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_jun 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_jul 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_ago 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_sep 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_oct 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_nov 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_dic 					PIC X(3) VALUE ALL "0".
+	  03 nada  							PIC X(2) VALUE ALL " ".
+	  03 reg_mat3_tot 					PIC X(5) VALUE ALL "0".
+
 	01 linea.
 	  03 guiones 						PIC X(80) VALUE ALL "-".
 
@@ -229,7 +392,6 @@ WORKING-STORAGE SECTION.
 	  03 reg1_horas 					PIC 9(2)V99.
 	  03 nada 							PIC X(3) VALUE ALL " ".
 	  03 reg1_impor						PIC 9(8)V99.
-
 
 	01 reg2_sin_fecha. 
 	  03 nada 							PIC X(16) VALUE ALL " ".
@@ -249,6 +411,9 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(3) VALUE ALL " ".
 	  03 sep 							PIC X(10) VALUE ALL "-".
 	
+	01 separador2.
+	  03 nada 							PIC X(84) VALUE ALL "-".
+
 	01 reg3_tot_fecha. 
 	  03 nada 							PIC X(2) VALUE ALL " ".
 	  03 reg3_tit 						PIC X(17) VALUE "Totales por fecha".
@@ -297,6 +462,9 @@ WORKING-STORAGE SECTION.
 	    03  FILLER            			PIC X(1) VALUE '-'.   
 	    03  W-MILISEG-SYS     			PIC 9(6) VALUE 0. 
 	
+	01 l 								PIC 9(2) VALUE 1.
+	01 m 								PIC 9(2) VALUE 1.
+	01 ano_impr							PIC X(4) VALUE ALL " ".					
 PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
@@ -306,10 +474,10 @@ PROCEDURE DIVISION.
 	PERFORM 3_CICLO_SUCURSALES UNTIL sucursales-estado_eof.
 	PERFORM 4_CICLO_TIPOS_CLASE UNTIL tipos_clase-estado_eof.
 	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
-	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
 	PERFORM ARMAR_DISPLAY_GRAL.
 	MOVE TOT_GRAL TO TOT_IMPR.
+	PERFORM 6_IMPRIMO_MATRIZ.
 	STOP RUN.   
 
 
@@ -384,6 +552,120 @@ CALCULO_ANT_FECHA_MIN.
 
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
+*> lmo
+	DISPLAY " ".
+	DISPLAY encabezado.
+	DISPLAY titulo2.
+	DISPLAY " ".
+	DISPLAY culumna_mat2.
+	DISPLAY separador2.
+	PERFORM X_suc 3 TIMES.
+
+	move tot_tot_mat to reg_mat3_tot.
+
+	move 1 to mesii.
+	move m3_horas(mesii) to reg_mat3_ene.
+	move 2 to mesii.
+	move m3_horas(mesii) to reg_mat3_feb.
+	move 3 to mesii.
+	move m3_horas(mesii) to reg_mat3_mar.
+	move 4 to mesii.
+	move m3_horas(mesii) to reg_mat3_abr.
+	move 5 to mesii.
+	move m3_horas(mesii) to reg_mat3_may.
+	move 6 to mesii.
+	move m3_horas(mesii) to reg_mat3_jun.
+	move 7 to mesii.
+	move m3_horas(mesii) to reg_mat3_jul.
+	move 8 to mesii.
+	move m3_horas(mesii) to reg_mat3_ago.
+	move 9 to mesii.
+	move m3_horas(mesii) to reg_mat3_sep.
+	move 10 to mesii.
+	move m3_horas(mesii) to reg_mat3_oct.
+	move 11 to mesii.
+	move m3_horas(mesii) to reg_mat3_nov.
+	move 12 to mesii.
+	move m3_horas(mesii) to reg_mat3_dic. 
+	DISPLAY reg_mat_horas_tot.
+
+X_Suc.
+	move 1 to m.
+	move l to reg_mat1_suc.
+	PERFORM LLENAR_ANO.
+	move ano_impr to reg_mat1_ano_p.
+	move l to suci.
+	move m to anoi.
+ 
+ 	move 1 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_ene. 
+	move 2 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_feb. 
+	move 3 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_mar. 
+	move 4 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_abr. 
+	move 5 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_may. 
+	move 6 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_jun. 
+	move 7 to mesi.	
+	move m_horas(suci,anoi,mesi) to reg_mat1_jul. 
+	move 8 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_ago. 
+	move 9 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_sep. 
+	move 10 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_oct. 
+	move 11 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_nov. 
+	move 12 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat1_dic. 
+	move anoi to anoii.
+	move suci to sucii.
+	move m2_horas(sucii,anoii) to reg_mat1_tot.
+
+	DISPLAY reg_mat_horas_con_suc.
+	MOVE 2 TO m. 
+	PERFORM X_ano 4 TIMES.	
+	ADD 1 TO l.
+	DISPLAY " ".
+X_ano.
+
+	PERFORM LLENAR_ANO.
+	move ano_impr to reg_mat2_ano_p.
+	move l to suci.
+	move m to anoi.
+	move 1 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_ene. 
+	move 2 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_feb. 
+	move 3 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_mar. 
+	move 4 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_abr. 
+	move 5 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_may. 
+	move 6 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_jun. 
+	move 7 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_jul. 
+	move 8 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_ago. 
+	move 9 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_sep. 
+	move 10 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_oct. 
+	move 11 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_nov. 
+	move 12 to mesi.
+	move m_horas(suci,anoi,mesi) to reg_mat2_dic. 
+	move anoi to anoii.
+	move suci to sucii.
+	move m2_horas(sucii,anoii) to reg_mat2_tot.
+
+	DISPLAY reg_mat_horas_sin_suc.
+	ADD 1 TO m.
 
 7_CIERRO_ARCHIVOS.
 	CLOSE SUC1.
@@ -522,6 +804,10 @@ CALCULO_ANT_FECHA_MIN.
 
 	    MOVE suc1_suc TO ind
 	    MOVE suc1_clase TO indi
+	    MOVE suc1_fecha_mes TO mesi
+	    MOVE suc1_fecha_ano TO ano
+	    PERFORM INSERTAR_ANO
+	    MOVE suc1_suc TO suci
     END-IF.
 	
     IF (archALeer IS = 2 and fin_suc2 IS NOT = "SI")THEN
@@ -530,6 +816,10 @@ CALCULO_ANT_FECHA_MIN.
 
 	    MOVE suc2_suc TO ind
 	    MOVE suc2_clase TO indi
+	    MOVE suc2_fecha_mes TO mesi
+	    MOVE suc2_fecha_ano TO ano
+	    PERFORM INSERTAR_ANO
+	    MOVE suc2_suc TO suci
     END-IF.
 	
     IF (archALeer IS = 3 and fin_suc3 IS NOT = "SI")THEN
@@ -538,6 +828,10 @@ CALCULO_ANT_FECHA_MIN.
 
 	    MOVE suc3_suc TO ind
 	    MOVE suc3_clase TO indi
+	    MOVE suc3_fecha_mes TO mesi
+	    MOVE suc3_fecha_ano TO ano
+	    PERFORM INSERTAR_ANO
+	    MOVE suc3_suc TO suci
     END-IF.
 	
     IF (archALeer IS = 4 and fin_times IS NOT = "SI")THEN
@@ -546,6 +840,10 @@ CALCULO_ANT_FECHA_MIN.
 
 	    MOVE tim_suc TO ind
 	    MOVE tim_clase TO indi
+	    MOVE tim_fecha_mes TO mesi
+	    MOVE tim_fecha_ano TO ano
+  	    PERFORM INSERTAR_ANO
+	    MOVE tim_suc TO suci
     END-IF.
 
 	ADD cant_horas_a_sumar TO TOT_GRAL.
@@ -556,7 +854,13 @@ CALCULO_ANT_FECHA_MIN.
     PERFORM ARMAR_DISPLAY_FECHA.
 
 5222_SUMAR_EN_MATRIZ.
-*> se debe sumar en la matriz para el punto b de a cuerdo a la sucursal, año y mes
+	MOVE anoi TO anoii.
+	MOVE mesi TO mesii.
+	MOVE suci TO sucii.
+	ADD cant_horas_a_sumar TO m_horas(suci,anoi,mesi).
+	ADD cant_horas_a_sumar TO m2_horas(sucii,anoii).
+	ADD cant_horas_a_sumar TO m3_horas(mesii).
+	ADD cant_horas_a_sumar TO tot_tot_mat.
 
 5223_ESCRIBO_MOV.
 	
@@ -686,3 +990,29 @@ ARMAR_DISPLAY_GRAL.
 
 OBTENER_INFO_PROF.
 	READ profesores AT END MOVE "SI" TO fin_suc1.
+
+INSERTAR_ANO.
+    IF (ano IS = 2012)THEN
+	    MOVE 1 TO anoi
+    ELSE IF (ano IS = 2013)THEN
+	    MOVE 2 TO anoi
+    ELSE IF (ano IS = 2014)THEN
+	    MOVE 3 TO anoi
+    ELSE IF (ano IS = 2015)THEN
+	    MOVE 4 TO anoi
+    ELSE IF (ano IS = 2016)THEN
+	    MOVE 5 TO anoi
+    END-IF.
+
+LLENAR_ANO.
+    IF ( m IS = 1)THEN
+	    MOVE "2012" TO ano_impr
+    ELSE IF (m IS = 2)THEN
+	    MOVE "2013" TO ano_impr
+    ELSE IF (m IS = 3)THEN
+	    MOVE "2014" TO ano_impr
+    ELSE IF (m IS = 4)THEN
+	    MOVE "2015" TO ano_impr
+    ELSE IF (m IS = 5)THEN
+	    MOVE "2016" TO ano_impr
+    END-IF.
