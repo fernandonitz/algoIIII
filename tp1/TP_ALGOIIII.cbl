@@ -13,6 +13,7 @@ FILE-CONTROL.
 	SELECT SUC3 ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS suc3-estado.
 	SELECT TIM ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS times-estado.
 	SELECT SUCURSALES ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS sucursales-estado.
+	SELECT PROFESORES ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS profesores-estado.
 	SELECT TIPOSCLASE ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS tipos_clase-estado.
     SELECT MASTER ASSIGN TO DISK ORGANIZATION IS LINE SEQUENTIAL FILE STATUS IS mae-estado.
 DATA DIVISION.
@@ -45,6 +46,15 @@ FD SUC3 LABEL RECORD IS STANDARD
 	  03 suc3_clase 					PIC X(4).
 	  03 suc3_horas 					PIC 9(2)V99.
 	  
+FD PROFESORES LABEL RECORD IS STANDARD 
+		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/profesores.txt".
+01 reg_profesores.
+	  03 prof_num 						PIC X(5).
+	  03 prof_dni 						PIC 9(8).
+	  03 prof_nom 						PIC X(25).
+	  03 prof_dire 						PIC X(20).
+	  03 prof_tel 						PIC X(20).
+
 FD TIM LABEL RECORD IS STANDARD 
 		VALUE OF FILE-ID IS "/home/fernando/workspaces/workspace/algo4/algoIIII/tp1/archivos/times.txt".
 01 reg_time.
@@ -76,6 +86,8 @@ FD MASTER LABEL RECORD IS STANDARD
 
 WORKING-STORAGE SECTION.
 
+	77  profesores-estado  				PIC XX VALUE "NO".
+		88 profesores-estado_eof		VALUE "SI".
 	77 	suc1-estado 					PIC XX VALUE "NO". 
 		88 suc1-estado_eof 				VALUE "SI".
 	77 	suc2-estado						PIC XX VALUE "NO". 
@@ -94,6 +106,9 @@ WORKING-STORAGE SECTION.
 	77  WB-FIN-ENTRADA 					PIC X(1) VALUE "N".
     	88 FIN-ENTRADA 					VALUE "S".
 
+	77 FECHA8 							PIC 9(8).
+
+	01 FECHA_HOY 						PIC X(8).
    	*> TOTALES PARCIALES:
    	01 TARIFA_TOT						PIC 9(11)V99 VALUE 0.
    	01 TARIFA_PROF 						PIC 9(10)V99 VALUE 0.
@@ -157,10 +172,9 @@ WORKING-STORAGE SECTION.
 
 
 	01 cant_hojas						PIC 9(3) VALUE 1.
-	01 fecha_hoy 						PIC X(10) VALUE "12/12/1234".
+	01 fecha_hoy_a 						PIC X(10) VALUE "12/12/1234".
 
 	01 linea_impr 						PIC X(100).
-	01 nom_prof  						PIC X(25) VALUE " ". 
 	01 sucursal_impr					PIC X(3) VALUE "999".
 
 
@@ -182,8 +196,8 @@ WORKING-STORAGE SECTION.
 	  03 nada 							PIC X(1) VALUE " ". 
 	  03 tit_num_prof					PIC X(5) VALUE "XXXXX".
 	  03 nada 							PIC X(10) VALUE ALL " ".
-	  03 nom_prof 						PIC X(7) VALUE "Nombre:".
-	  03 tit_nom_prof					PIC X(25) VALUE ALL "X".
+	  03 nom_prof 						PIC X(8) VALUE "Nombre: ".
+	  03 tit_nom_prof					PIC X(25) VALUE ALL " ".
 
 	01 culumnas_mat.
 	  03 nada 							PIC X(5) VALUE ALL " ".
@@ -256,10 +270,37 @@ WORKING-STORAGE SECTION.
 	  03 reg5_tit 						PIC X(13) VALUE "Total general".
 	  03 nada 							PIC X(50) VALUE ALL " ".
 	  03 reg5_impor						PIC 9(11)V99.
+
+	01  W-FECHA-HORA-SISTEMA  			PIC S9(15) VALUE   0.
+	01  W-ANNO-SISTEMA        			PIC S9(8) VALUE   0.
+	01  W-MES-SISTEMA        			PIC S9(8) VALUE   0.
+	01  W-DIA-SISTEMA         			PIC S9(8) VALUE   0.
+
+	01  W-HORA-SISTEMA.                                   
+	    03  W-HH-SISTEMA      			PIC 9(2) VALUE    0.
+	    03  FILLER            			PIC X VALUE  '.'.
+	    03  W-MM-SISTEMA      			PIC 9(2) VALUE    0.
+	    03  FILLER            			PIC X VALUE  '.'.
+	    03  W-SS-SISTEMA      			PIC 9(2) VALUE    0. 
+
+	01  W-FECHA-SISTEMA.                                  
+	    03  W-ANNO            			PIC 9(4) VALUE    0.
+	    03  FILLER            			PIC X VALUE  '-'.
+	    03  W-MES             			PIC 9(2) VALUE    0.
+	    03  FILLER            			PIC X VALUE  '-'.
+	    03  W-DIA             			PIC 9(2) VALUE    0.
+
+	01  W-TIMESTAMP.                                        
+	    03  W-FECHA-SYS       			PIC X(10) VALUE SPACES.
+	    03  FILLER            			PIC X(1) VALUE '-'.   
+	    03  W-HORA-SYS        			PIC X(8) VALUE SPACES.
+	    03  FILLER            			PIC X(1) VALUE '-'.   
+	    03  W-MILISEG-SYS     			PIC 9(6) VALUE 0. 
 	
 PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
+   *> ACCEPT FECHA8 FROM CENTURY-DATE.
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_CICLO_SUCURSALES UNTIL sucursales-estado_eof.
@@ -267,10 +308,8 @@ PROCEDURE DIVISION.
 	PERFORM 5_CICLO_ARCHIVOS UNTIL fin_suc1 IS = "SI" and fin_suc2 IS = "SI" and fin_suc3 IS = "SI" and fin_times IS = "SI".
 	PERFORM 6_IMPRIMO_MATRIZ.
 	PERFORM 7_CIERRO_ARCHIVOS.
-	*>DISPLAY "TOT GRAL".
 	PERFORM ARMAR_DISPLAY_GRAL.
 	MOVE TOT_GRAL TO TOT_IMPR.
-	*>DISPLAY TOT_IMPR.
 	STOP RUN.   
 
 
@@ -283,6 +322,7 @@ PROCEDURE DIVISION.
 	OPEN INPUT TIM.
 	OPEN INPUT SUCURSALES.
 	OPEN INPUT TIPOSCLASE.
+	OPEN INPUT PROFESORES.
 	OPEN OUTPUT MASTER.
 
 2_LEO_ARCHIVOS.
@@ -330,6 +370,7 @@ CALCULO_ANT_FECHA_MIN.
 
 5_CICLO_ARCHIVOS.
 	PERFORM 51_OBTENER_REG_MIN_PROF.
+	PERFORM OBTENER_INFO_PROF UNTIL prof_num IS = prof_ant_min.
 	MOVE 0 TO TOT_X_PROF.
 	MOVE 0 TO TARIFA_PROF.	
 	MOVE 0  TO cont_titulo.
@@ -344,14 +385,6 @@ CALCULO_ANT_FECHA_MIN.
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
 
-*>	MOVE 1 TO I.
-*>	PERFORM HOLA UNTIL I > 50.
-
-*>HOLA.
-*>	MOVE I TO indi.
-	*>DISPLAY v_tipo_clase(indi).
-*>	ADD 1 TO I.
-
 7_CIERRO_ARCHIVOS.
 	CLOSE SUC1.
 	CLOSE SUC2.
@@ -359,6 +392,7 @@ CALCULO_ANT_FECHA_MIN.
 	CLOSE TIM.
 	CLOSE SUCURSALES.
 	CLOSE TIPOSCLASE.
+	CLOSE PROFESORES.
 	CLOSE MASTER.
 
 *> CICLO POR PROFESOR--------------------------------------------------------------
@@ -395,8 +429,6 @@ CALCULO_ANT_FECHA_MIN.
 	or (fecha_ant_min IS NOT = suc1_fecha and fecha_ant_min IS NOT = suc2_fecha and fecha_ant_min IS NOT = suc3_fecha and fecha_ant_min IS NOT = tim_fecha)).
 *> corte cuando eof de todos los archivos: EOF suc1 and EOF suc2 and EOF suc3 and EOF times and Prof_ant != Prof_act and Fecha_ant != Fecha_act
 	PERFORM 523_ESCRIBO_TOT_FECHA.
-
-	
 
 53_ESCRIBO_TOT_PROF.
 *> se debe escribir en el archivo master, el total por profesor como indica el enunciado
@@ -582,7 +614,6 @@ CALCULO_ANT_FECHA_MIN.
 	    MOVE "XXXXX99999999XXXXXXX9999" TO reg_time
     END-IF.
 
-*> falta 
 ARMAR_ENCABEZADO.
 	IF (cont_titulo IS = 0)THEN
 		MOVE fecha_hoy TO fechaHoy
@@ -590,7 +621,7 @@ ARMAR_ENCABEZADO.
 		DISPLAY encabezado
 		DISPLAY titulo
 		MOVE prof_ant_min TO tit_num_prof
-*>		MOVE nom_prof_min TO nom_prof
+		MOVE prof_nom TO tit_nom_prof
 		DISPLAY titulo_prof
 		DISPLAY " "
 		ADD 1 TO cant_hojas
@@ -652,3 +683,6 @@ ARMAR_DISPLAY_PROF.
 ARMAR_DISPLAY_GRAL.
 	MOVE TARIFA_TOT TO reg5_impor.
 	DISPLAY reg5_tot_gral. 
+
+OBTENER_INFO_PROF.
+	READ profesores AT END MOVE "SI" TO fin_suc1.
