@@ -553,6 +553,7 @@ CALCULO_ANT_FECHA_MIN.
 6_IMPRIMO_MATRIZ.
 *> se debera leer toda la matriz (punto b) y mostrarla en el formato del enunciado 
 *> lmo
+	MOVE cant_hojas TO enc_num_hoja.
 	DISPLAY " ".
 	DISPLAY encabezado.
 	DISPLAY titulo2.
