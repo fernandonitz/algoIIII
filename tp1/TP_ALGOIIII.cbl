@@ -120,7 +120,11 @@ WORKING-STORAGE SECTION.
 
 	77 FECHA8 							PIC 9(8).
 
-	01 FECHA_HOY 						PIC X(8).
+	01 FECHA_HOY.
+		03 FECHA_HOY_AA					PIC 9(2).
+		03 FECHA_HOY_MM					PIC 9(2).
+		03 FECHA_HOY_DD					PIC 9(2).
+
    	*> TOTALES PARCIALES:
    	01 TARIFA_TOT						PIC 9(11)V99 VALUE 0.
    	01 TARIFA_PROF 						PIC 9(10)V99 VALUE 0.
@@ -215,7 +219,12 @@ WORKING-STORAGE SECTION.
 	01 encabezado.
 	  03 fechaHoy 						PIC X(5) VALUE "Fecha".
 	  03 nada 							PIC X(1) VALUE " ".
-	  03 enc_fecha_hoy					PIC X(10) VALUE	"XX/XX/XXXX".
+	  03 enc_fecha_hoy.
+	  	05 	enc_fecha_hoy_dd			PIC X(2) VALUE "XX".
+	  	05  nada 						PIC X(1) VALUE "/".
+	  	05 	enc_fecha_hoy_mm			PIC X(2) VALUE "XX".
+	  	05  nada 						PIC X(1) VALUE "/".
+	  	05 	enc_fecha_hoy_aa			PIC X(2) VALUE "XX".
 	  03 nada 							PIC X(45) VALUE ALL " ".
 	  03 hoja 							PIC X(4) VALUE "Hoja".
 	  03 nada3 							PIC X(1) VALUE " ".
@@ -468,7 +477,7 @@ WORKING-STORAGE SECTION.
 PROCEDURE DIVISION.
 
 *> CICLO PPAL--------------------------------------------------------------
-   *> ACCEPT FECHA8 FROM CENTURY-DATE.
+    ACCEPT FECHA8 FROM DATE.
 	PERFORM 1_ABRO_ARCHIVOS.
 	PERFORM 2_LEO_ARCHIVOS.
 	PERFORM 3_CICLO_SUCURSALES UNTIL sucursales-estado_eof.
@@ -921,7 +930,9 @@ X_ano.
 
 ARMAR_ENCABEZADO.
 	IF (cont_titulo IS = 0)THEN
-		MOVE fecha_hoy TO fechaHoy
+		MOVE FECHA_HOY_DD TO enc_fecha_hoy_dd
+		MOVE FECHA_HOY_MM TO enc_fecha_hoy_mm
+		MOVE FECHA_HOY_AA TO enc_fecha_hoy_aa
 		MOVE cant_hojas TO enc_num_hoja
 		DISPLAY encabezado
 		DISPLAY titulo
